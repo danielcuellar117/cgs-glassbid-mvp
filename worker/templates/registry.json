@@ -1,0 +1,146 @@
+{
+  "templates": [
+    {
+      "templateId": "TPL-01",
+      "module": "tpl_01_inline_panel",
+      "description": "Inline Panel (single fixed panel)",
+      "requiredVariables": ["panel_width", "panel_height", "glass_type", "glass_thickness"],
+      "optionalVariables": ["header_type", "channel_type"],
+      "validationRules": {
+        "panel_width": { "min": 6, "max": 120, "unit": "in" },
+        "panel_height": { "min": 24, "max": 120, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-02",
+      "module": "tpl_02_inline_panel_door",
+      "description": "Inline Panel + Door (fixed + swing door)",
+      "requiredVariables": ["panel_width", "door_width", "height", "glass_type", "glass_thickness", "hinge_type", "hinge_finish"],
+      "optionalVariables": ["handle_type", "handle_finish"],
+      "validationRules": {
+        "panel_width": { "min": 6, "max": 120, "unit": "in" },
+        "door_width": { "min": 18, "max": 42, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-03",
+      "module": "tpl_03_90_degree_corner",
+      "description": "90-Degree Corner (two panels at 90 degrees)",
+      "requiredVariables": ["panel_a_width", "panel_b_width", "height", "glass_type", "glass_thickness"],
+      "optionalVariables": ["clamp_type", "clamp_finish"],
+      "validationRules": {
+        "panel_a_width": { "min": 6, "max": 120, "unit": "in" },
+        "panel_b_width": { "min": 6, "max": 120, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-04",
+      "module": "tpl_04_90_degree_corner_door",
+      "description": "90-Degree Corner + Door",
+      "requiredVariables": ["panel_a_width", "panel_b_width", "door_width", "height", "glass_type", "glass_thickness", "hinge_type"],
+      "optionalVariables": ["handle_type", "handle_finish", "header_type"],
+      "validationRules": {
+        "panel_a_width": { "min": 6, "max": 120, "unit": "in" },
+        "panel_b_width": { "min": 6, "max": 120, "unit": "in" },
+        "door_width": { "min": 18, "max": 42, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-05",
+      "module": "tpl_05_neo_angle",
+      "description": "Neo-Angle (3-panel angled enclosure)",
+      "requiredVariables": ["panel_a_width", "panel_b_width", "panel_c_width", "height", "glass_type", "glass_thickness", "angle_degrees"],
+      "optionalVariables": ["door_on_panel"],
+      "validationRules": {
+        "panel_a_width": { "min": 6, "max": 120, "unit": "in" },
+        "panel_b_width": { "min": 6, "max": 120, "unit": "in" },
+        "panel_c_width": { "min": 6, "max": 120, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" },
+        "angle_degrees": { "min": 30, "max": 150, "unit": "deg" }
+      }
+    },
+    {
+      "templateId": "TPL-06",
+      "module": "tpl_06_frameless_sliding",
+      "description": "Frameless Sliding (bypass)",
+      "requiredVariables": ["opening_width", "height", "glass_type", "glass_thickness", "track_type"],
+      "optionalVariables": ["towel_bar", "handle_type"],
+      "validationRules": {
+        "opening_width": { "min": 36, "max": 72, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-07",
+      "module": "tpl_07_bathtub_fixed_panel",
+      "description": "Bathtub Fixed Panel",
+      "requiredVariables": ["panel_width", "panel_height", "glass_type", "glass_thickness"],
+      "optionalVariables": ["u_channel_type"],
+      "validationRules": {
+        "panel_width": { "min": 6, "max": 72, "unit": "in" },
+        "panel_height": { "min": 24, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-08",
+      "module": "tpl_08_bathtub_panel_door",
+      "description": "Bathtub Panel + Door",
+      "requiredVariables": ["panel_width", "door_width", "height", "glass_type", "glass_thickness", "hinge_type"],
+      "optionalVariables": ["handle_type", "towel_bar"],
+      "validationRules": {
+        "panel_width": { "min": 6, "max": 72, "unit": "in" },
+        "door_width": { "min": 18, "max": 42, "unit": "in" },
+        "height": { "min": 60, "max": 96, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-09",
+      "module": "tpl_09_vanity_mirror",
+      "description": "Vanity Mirror (rectangular, simple)",
+      "requiredVariables": ["mirror_width", "mirror_height", "edge_type"],
+      "optionalVariables": ["bevel_width", "mounting_type"],
+      "validationRules": {
+        "mirror_width": { "min": 12, "max": 120, "unit": "in" },
+        "mirror_height": { "min": 12, "max": 120, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-10",
+      "module": "tpl_10_vanity_mirror_custom",
+      "description": "Vanity Mirror (custom shape / with cutouts)",
+      "requiredVariables": ["mirror_width", "mirror_height", "edge_type", "shape_descriptor"],
+      "optionalVariables": ["cutout_positions"],
+      "validationRules": {
+        "mirror_width": { "min": 12, "max": 120, "unit": "in" },
+        "mirror_height": { "min": 12, "max": 120, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-11",
+      "module": "tpl_11_steam_shower",
+      "description": "Steam Shower (full enclosure with transom)",
+      "requiredVariables": ["opening_width", "height", "transom_height", "glass_type", "glass_thickness", "door_width"],
+      "optionalVariables": ["vent_position", "hinge_type"],
+      "validationRules": {
+        "opening_width": { "min": 24, "max": 72, "unit": "in" },
+        "height": { "min": 72, "max": 108, "unit": "in" },
+        "transom_height": { "min": 4, "max": 24, "unit": "in" },
+        "door_width": { "min": 18, "max": 42, "unit": "in" }
+      }
+    },
+    {
+      "templateId": "TPL-12",
+      "module": "tpl_12_custom_enclosure",
+      "description": "Wine Cellar / Custom Enclosure (generic)",
+      "requiredVariables": ["opening_width", "height", "glass_type", "glass_thickness"],
+      "optionalVariables": [],
+      "validationRules": {
+        "opening_width": { "min": 12, "max": 240, "unit": "in" },
+        "height": { "min": 24, "max": 120, "unit": "in" }
+      }
+    }
+  ]
+}

@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum JobStatus {
+  CREATED
+  UPLOADING
+  UPLOADED
+  INDEXING
+  INDEXED
+  ROUTING
+  ROUTED
+  EXTRACTING
+  EXTRACTED
+  NEEDS_REVIEW
+  REVIEWED
+  PRICING
+  PRICED
+  GENERATING
+  DONE
+  FAILED
+}
+
+enum MeasurementTaskStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+enum RenderRequestKind {
+  THUMB
+  MEASURE
+}
+
+enum RenderRequestStatus {
+  PENDING
+  DONE
+  FAILED
+}
+
+enum WorkerStatus {
+  IDLE
+  PROCESSING
+  PAUSED
+}
+
+// ─── Projects ───────────────────────────────────────────────────────────────
+
+model Project {
+  id        String   @id @default(uuid())
+  tenantId  String   @default("default") @map("tenant_id")
+  name      String
+  clientName String  @map("client_name")
+  address   String   @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  jobs Job[]
+
+  @@map("projects")
+}
+
+// ─── Jobs (also serves as the job queue) ────────────────────────────────────
+
+model Job {
+  id             String    @id @default(uuid())
+  tenantId       String    @default("default") @map("tenant_id")
+  projectId      String    @map("project_id")
+  status         JobStatus @default(CREATED)
+  ssot           Json      @default("{}")
+  errorMessage   String?   @map("error_message")
+  errorCode      String?   @map("error_code")
+  retryCount     Int       @default(0) @map("retry_count")
+  maxRetries     Int       @default(3) @map("max_retries")
+  idempotencyKey String?   @map("idempotency_key")
+  lockedAt       DateTime? @map("locked_at")
+  lockedBy       String?   @map("locked_by")
+  nextRunAt      DateTime? @map("next_run_at")
+  stageProgress  Json?     @map("stage_progress")
+  uploadToken    String?   @map("upload_token")
+  uploadTokenExp DateTime? @map("upload_token_exp")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  project          Project           @relation(fields: [projectId], references: [id])
+  measurementTasks MeasurementTask[]
+  renderRequests   RenderRequest[]
+  storageObjects   StorageObject[]
+  auditLogs        AuditLog[]
+
+  @@index([status, nextRunAt, lockedAt, createdAt], name: "idx_jobs_claimable")
+  @@index([projectId, createdAt], name: "idx_jobs_project")
+  @@map("jobs")
+}
+
+// ─── Measurement Tasks ──────────────────────────────────────────────────────
+
+model MeasurementTask {
+  id              String                @id @default(uuid())
+  jobId           String                @map("job_id")
+  itemId          String                @map("item_id")
+  dimensionKey    String                @map("dimension_key")
+  status          MeasurementTaskStatus @default(PENDING)
+  pageNum         Int                   @map("page_num")
+  calibrationJson Json?                 @map("calibration_json")
+  measuredValue   Float?                @map("measured_value")
+  measuredBy      String?               @map("measured_by")
+  measuredAt      DateTime?             @map("measured_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("measurement_tasks")
+}
+
+// ─── Pricebook Versions ─────────────────────────────────────────────────────
+
+model PricebookVersion {
+  id            String   @id @default(uuid())
+  version       Int      @default(autoincrement())
+  effectiveDate DateTime @map("effective_date")
+  notes         String   @default("")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  rules PricingRule[]
+
+  @@map("pricebook_versions")
+}
+
+// ─── Pricing Rules ──────────────────────────────────────────────────────────
+
+model PricingRule {
+  id                 String  @id @default(uuid())
+  pricebookVersionId String  @map("pricebook_version_id")
+  name               String
+  category           String
+  formulaJson        Json    @map("formula_json")
+  appliesTo          Json?   @map("applies_to")
+  isActive           Boolean @default(true) @map("is_active")
+
+  pricebookVersion PricebookVersion @relation(fields: [pricebookVersionId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_rules")
+}
+
+// ─── Audit Log ──────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  jobId     String?  @map("job_id")
+  actor     String   @default("system")
+  action    String
+  diffJson  Json?    @map("diff_json")
+  timestamp DateTime @default(now())
+
+  job Job? @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@map("audit_log")
+}
+
+// ─── Storage Objects ────────────────────────────────────────────────────────
+
+model StorageObject {
+  id          String    @id @default(uuid())
+  jobId       String    @map("job_id")
+  tenantId    String    @default("default") @map("tenant_id")
+  bucket      String
+  key         String
+  sizeBytes   BigInt?   @map("size_bytes")
+  sha256      String?
+  contentType String?   @map("content_type")
+  ttlPolicy   String?   @map("ttl_policy")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt], name: "idx_storage_objects_expiry")
+  @@map("storage_objects")
+}
+
+// ─── Render Requests ────────────────────────────────────────────────────────
+
+model RenderRequest {
+  id          String              @id @default(uuid())
+  jobId       String              @map("job_id")
+  pageNum     Int                 @map("page_num")
+  kind        RenderRequestKind
+  dpi         Int                 @default(72)
+  status      RenderRequestStatus @default(PENDING)
+  outputKey   String?             @map("output_key")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  completedAt DateTime?           @map("completed_at")
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, pageNum, kind], name: "idx_render_requests_dedup")
+  @@index([status, createdAt], name: "idx_render_requests_pending")
+  @@map("render_requests")
+}
+
+// ─── Configuration Template Map ─────────────────────────────────────────────
+
+model ConfigurationTemplateMap {
+  id            String @id @default(uuid())
+  configuration String @unique
+  templateId    String @map("template_id")
+  description   String @default("")
+
+  @@map("configuration_template_map")
+}
+
+// ─── Worker Heartbeats ──────────────────────────────────────────────────────
+
+model WorkerHeartbeat {
+  workerId       String       @id @map("worker_id")
+  lastHeartbeatAt DateTime    @map("last_heartbeat_at")
+  status         WorkerStatus @default(IDLE)
+  currentJobId   String?      @map("current_job_id")
+  memoryUsageMb  Float?       @map("memory_usage_mb")
+  diskUsagePct   Float?       @map("disk_usage_pct")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  @@map("worker_heartbeats")
+}
