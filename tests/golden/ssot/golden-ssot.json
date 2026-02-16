@@ -1,0 +1,221 @@
+{
+  "version": "1.0.0",
+  "tenantId": "default",
+  "projectId": "test-project-001",
+  "jobId": "test-job-001",
+  "metadata": {
+    "projectName": "Marina Bay Residences - Tower A",
+    "clientName": "Bay Development Corp",
+    "address": "123 Marina Blvd, Miami, FL 33131",
+    "createdAt": "2025-01-15T10:00:00Z",
+    "updatedAt": "2025-01-20T14:30:00Z",
+    "sourceFile": {
+      "bucket": "raw-uploads",
+      "key": "test-project-001/test-job-001/source.pdf",
+      "sizeBytes": 52428800,
+      "sha256": "abc123def456",
+      "pageCount": 120
+    }
+  },
+  "pageIndex": [
+    {"pageNum": 0, "classification": "TITLE", "confidence": 0.95, "relevantTo": []},
+    {"pageNum": 1, "classification": "FLOOR_PLAN", "confidence": 0.85, "relevantTo": ["showers"]},
+    {"pageNum": 5, "classification": "ELEVATION", "confidence": 0.90, "relevantTo": ["showers", "mirrors"]},
+    {"pageNum": 10, "classification": "SCHEDULE", "confidence": 0.88, "relevantTo": ["showers"]},
+    {"pageNum": 15, "classification": "DETAIL", "confidence": 0.92, "relevantTo": ["showers"]},
+    {"pageNum": 20, "classification": "NOTES", "confidence": 0.80, "relevantTo": ["assumptions"]}
+  ],
+  "units": [
+    {"unitId": "Type-A", "label": "Type A - 2BR/2BA", "quantity": 40, "floors": ["3-20"]},
+    {"unitId": "Type-B", "label": "Type B - 1BR/1BA", "quantity": 60, "floors": ["3-20"]},
+    {"unitId": "Type-C", "label": "Type C - 3BR/3BA", "quantity": 20, "floors": ["21-35"]}
+  ],
+  "items": [
+    {
+      "itemId": "item-001",
+      "category": "SHOWER_ENCLOSURE",
+      "unitId": "Type-A",
+      "location": "Master Bath",
+      "configuration": "inline-panel-door",
+      "templateId": "TPL-02",
+      "dimensions": {
+        "width": {"value": 36, "unit": "in", "source": "DIMENSION_CALLOUT", "confidence": 0.95},
+        "height": {"value": 78, "unit": "in", "source": "DIMENSION_CALLOUT", "confidence": 0.92},
+        "depth": {"value": 24, "unit": "in", "source": "SCHEDULE", "confidence": 0.88}
+      },
+      "glassType": "3/8 clear tempered",
+      "hardware": [
+        {"type": "Hinge", "finish": "Brushed Nickel", "qty": 2},
+        {"type": "Handle", "finish": "Brushed Nickel", "qty": 1}
+      ],
+      "flags": [],
+      "notes": "Standard inline configuration per typical detail SD-5",
+      "sourcePages": [5, 10, 15],
+      "quantityPerUnit": 1
+    },
+    {
+      "itemId": "item-002",
+      "category": "SHOWER_ENCLOSURE",
+      "unitId": "Type-A",
+      "location": "Guest Bath",
+      "configuration": "bathtub-fixed-panel",
+      "templateId": "TPL-07",
+      "dimensions": {
+        "width": {"value": 30, "unit": "in", "source": "DIMENSION_CALLOUT", "confidence": 0.90},
+        "height": {"value": 60, "unit": "in", "source": "DIMENSION_CALLOUT", "confidence": 0.90},
+        "depth": {"value": null, "unit": "in", "source": "FIELD_VERIFY", "confidence": 0.0}
+      },
+      "glassType": "3/8 clear tempered",
+      "hardware": [],
+      "flags": [],
+      "notes": "Bathtub fixed panel with U-channel base",
+      "sourcePages": [5, 10],
+      "quantityPerUnit": 1
+    },
+    {
+      "itemId": "item-003",
+      "category": "SHOWER_ENCLOSURE",
+      "unitId": "Type-C",
+      "location": "Master Bath",
+      "configuration": "90-degree-corner-door",
+      "templateId": "TPL-04",
+      "dimensions": {
+        "width": {"value": 42, "unit": "in", "source": "SCHEDULE", "confidence": 0.85},
+        "height": {"value": 78, "unit": "in", "source": "SCHEDULE", "confidence": 0.85},
+        "depth": {"value": 36, "unit": "in", "source": "SCHEDULE", "confidence": 0.82}
+      },
+      "glassType": "1/2 low iron tempered",
+      "hardware": [
+        {"type": "Hinge", "finish": "Chrome", "qty": 2},
+        {"type": "Handle", "finish": "Chrome", "qty": 1},
+        {"type": "Corner Clamp", "finish": "Chrome", "qty": 2}
+      ],
+      "flags": [],
+      "notes": "Premium 90-degree corner with low iron glass",
+      "sourcePages": [5, 10, 15],
+      "quantityPerUnit": 1
+    },
+    {
+      "itemId": "item-004",
+      "category": "VANITY_MIRROR",
+      "unitId": "Type-A",
+      "location": "Master Bath",
+      "configuration": "vanity-mirror",
+      "templateId": "TPL-09",
+      "dimensions": {
+        "width": {"value": 48, "unit": "in", "source": "SCHEDULE", "confidence": 0.90},
+        "height": {"value": 36, "unit": "in", "source": "SCHEDULE", "confidence": 0.90},
+        "depth": {"value": null, "unit": "in", "source": "FIELD_VERIFY", "confidence": 0.0}
+      },
+      "glassType": "1/4 mirror, polished edge",
+      "hardware": [],
+      "flags": [],
+      "notes": "Double vanity mirror, polished edges all around",
+      "sourcePages": [10],
+      "quantityPerUnit": 1
+    },
+    {
+      "itemId": "item-005",
+      "category": "VANITY_MIRROR",
+      "unitId": "Type-B",
+      "location": "Bathroom",
+      "configuration": "vanity-mirror",
+      "templateId": "TPL-09",
+      "dimensions": {
+        "width": {"value": 30, "unit": "in", "source": "SCHEDULE", "confidence": 0.88},
+        "height": {"value": 36, "unit": "in", "source": "SCHEDULE", "confidence": 0.88},
+        "depth": {"value": null, "unit": "in", "source": "FIELD_VERIFY", "confidence": 0.0}
+      },
+      "glassType": "1/4 mirror, polished edge",
+      "hardware": [],
+      "flags": [],
+      "notes": "Single vanity mirror",
+      "sourcePages": [10],
+      "quantityPerUnit": 1
+    }
+  ],
+  "assumptions": [
+    "All glass is tempered safety glass per code requirements",
+    "Hardware finish to be confirmed during shop drawing approval",
+    "Field measurements to be taken before fabrication",
+    "Building must provide clean, plumb, and level surfaces for installation",
+    "Standard installation height of 78\" for shower enclosures unless noted otherwise"
+  ],
+  "exclusions": [
+    "Tile work, waterproofing, or any other trades' work",
+    "Electrical work for lighting or heated mirrors",
+    "Plumbing modifications",
+    "Removal or disposal of existing fixtures",
+    "Permits or inspections (by others)"
+  ],
+  "alternates": [
+    {"id": "ALT-1", "description": "Upgrade all shower glass to 1/2\" low iron", "priceImpact": 15200},
+    {"id": "ALT-2", "description": "Add towel bar to all bathtub panels", "priceImpact": 4800}
+  ],
+  "pricing": {
+    "pricebookVersionId": null,
+    "pricebookSnapshotDate": null,
+    "rules": [],
+    "lineItems": [
+      {
+        "itemId": "item-001",
+        "description": "Shower Enclosure (Inline Panel Door) at Master Bath",
+        "unitPrice": 850.00,
+        "quantity": 40,
+        "totalPrice": 34000.00,
+        "breakdown": {"glass": 340.00, "hardware": 212.50, "labor": 255.00, "other": 42.50},
+        "manualOverride": false,
+        "overrideReason": null
+      },
+      {
+        "itemId": "item-002",
+        "description": "Shower Enclosure (Bathtub Fixed Panel) at Guest Bath",
+        "unitPrice": 450.00,
+        "quantity": 40,
+        "totalPrice": 18000.00,
+        "breakdown": {"glass": 180.00, "hardware": 112.50, "labor": 135.00, "other": 22.50},
+        "manualOverride": false,
+        "overrideReason": null
+      },
+      {
+        "itemId": "item-003",
+        "description": "Shower Enclosure (90 Degree Corner Door) at Master Bath",
+        "unitPrice": 1450.00,
+        "quantity": 20,
+        "totalPrice": 29000.00,
+        "breakdown": {"glass": 580.00, "hardware": 362.50, "labor": 435.00, "other": 72.50},
+        "manualOverride": false,
+        "overrideReason": null
+      },
+      {
+        "itemId": "item-004",
+        "description": "Vanity Mirror at Master Bath",
+        "unitPrice": 280.00,
+        "quantity": 40,
+        "totalPrice": 11200.00,
+        "breakdown": {"glass": 154.00, "hardware": 28.00, "labor": 70.00, "other": 28.00},
+        "manualOverride": false,
+        "overrideReason": null
+      },
+      {
+        "itemId": "item-005",
+        "description": "Vanity Mirror at Bathroom",
+        "unitPrice": 210.00,
+        "quantity": 60,
+        "totalPrice": 12600.00,
+        "breakdown": {"glass": 115.50, "hardware": 21.00, "labor": 52.50, "other": 21.00},
+        "manualOverride": false,
+        "overrideReason": null
+      }
+    ],
+    "subtotal": 104800.00,
+    "tax": 0,
+    "total": 104800.00
+  },
+  "measurementTasks": [],
+  "outputs": [],
+  "routing": {
+    "relevantPages": [1, 5, 10, 15, 20],
+    "totalPages": 120
+  }
+}
