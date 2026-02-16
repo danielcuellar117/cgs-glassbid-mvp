@@ -1,0 +1,166 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "2"
+
+services:
+  # ─── Test PostgreSQL (isolated port 5433) ─────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: glassbid
+      POSTGRES_PASSWORD: glassbid_secret
+      POSTGRES_DB: glassbid_test
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glassbid -d glassbid_test"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *default-logging
+
+  # ─── Test MinIO (isolated ports 9010/9011) ────────────────────────
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: testadmin
+      MINIO_ROOT_PASSWORD: testadmin_secret
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    tmpfs:
+      - /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    logging: *default-logging
+
+  # ─── Test Redis (isolated port 6380) ──────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
+
+  # ─── Test tusd ────────────────────────────────────────────────────
+  tusd:
+    image: tusproject/tusd:v2
+    command:
+      - "-s3-bucket=raw-uploads"
+      - "-s3-endpoint=http://minio:9000"
+      - "-s3-object-prefix="
+      - "-hooks-http=http://app:3000/api/webhooks/tus"
+      - "-hooks-enabled-events=pre-create,post-finish"
+      - "-max-size=10737418240"
+      - "-behind-proxy"
+    environment:
+      AWS_ACCESS_KEY_ID: testadmin
+      AWS_SECRET_ACCESS_KEY: testadmin_secret
+      AWS_REGION: us-east-1
+    ports:
+      - "8081:8080"
+    depends_on:
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  # ─── Test App (BFF) ──────────────────────────────────────────────
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: test
+      LOG_LEVEL: warn
+      DATABASE_URL: postgresql://glassbid:glassbid_secret@postgres:5432/glassbid_test
+      REDIS_URL: redis://redis:6379
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: testadmin
+      MINIO_SECRET_KEY: testadmin_secret
+      MINIO_USE_SSL: "false"
+      APP_PORT: "3000"
+      CORS_ORIGIN: "http://localhost:3001"
+      TUS_ENDPOINT: http://tusd:8080/files/
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *default-logging
+
+  # ─── Test Worker ─────────────────────────────────────────────────
+  worker:
+    build:
+      context: ./worker
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://glassbid:glassbid_secret@postgres:5432/glassbid_test
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: "9000"
+      MINIO_ACCESS_KEY: testadmin
+      MINIO_SECRET_KEY: testadmin_secret
+      MINIO_USE_SSL: "false"
+      POLL_INTERVAL_SECONDS: "1"
+      WORKER_ID: test-worker-1
+      WORKER_MODE: full
+      MAX_MEMORY_MB: "2048"
+      TEMP_DIR: /data/worker-tmp
+      DISK_PRESSURE_THRESHOLD_PCT: "80"
+      PNG_THUMB_DPI: "72"
+      PNG_MEASURE_DPI: "200"
+    volumes:
+      - worker_test_tmp:/data/worker-tmp
+      - ./worker/templates:/worker/templates:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    logging: *default-logging
+
+  # ─── Test Frontend (for E2E) ─────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8090:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+volumes:
+  worker_test_tmp:

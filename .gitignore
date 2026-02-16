@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+app/prisma/migrations/**/migration_lock.toml
+
+# Docker
+docker/volumes/
+
+# Temp
+*.tmp
+*.log
+worker-tmp/
+
+# Test coverage
+coverage/
+htmlcov/
+.pytest_cache/
