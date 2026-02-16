@@ -35,7 +35,7 @@ def _seed_job(conn, status="UPLOADED", locked_at=None, locked_by=None, next_run_
     with conn.cursor() as cur:
         # Ensure project exists
         cur.execute(
-            "INSERT INTO projects (id, name, client_name) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+            "INSERT INTO projects (id, name, client_name, updated_at) VALUES (%s, %s, %s, NOW()) ON CONFLICT DO NOTHING",
             (project_id, "Test Project", "Test Client"),
         )
         cur.execute(
