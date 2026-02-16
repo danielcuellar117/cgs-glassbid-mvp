@@ -39,8 +39,8 @@ def _seed_job(conn, status="UPLOADED", locked_at=None, locked_by=None, next_run_
             (project_id, "Test Project", "Test Client"),
         )
         cur.execute(
-            """INSERT INTO jobs (id, project_id, status, ssot, locked_at, locked_by, next_run_at)
-               VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+            """INSERT INTO jobs (id, project_id, status, ssot, locked_at, locked_by, next_run_at, updated_at)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())""",
             (job_id, project_id, status, json.dumps({}), locked_at, locked_by, next_run_at),
         )
     conn.commit()
