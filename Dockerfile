@@ -45,7 +45,8 @@ RUN apt-get update && \
         libpq-dev \
         supervisor \
         gnupg \
-        ca-certificates && \
+        ca-certificates \
+        musl && \
     # Install Node.js 22
     curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
