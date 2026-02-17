@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
 
 describe("Job Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("GET /api/jobs", () => {
@@ -21,7 +24,7 @@ describe("Job Routes", () => {
       ];
       mockPrisma.job.findMany.mockResolvedValue(mockJobs as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/jobs" });
+      const res = await app.inject({ method: "GET", url: "/api/jobs", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       expect(JSON.parse(res.payload)).toHaveLength(2);
@@ -36,6 +39,7 @@ describe("Job Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/jobs?projectId=proj-123",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -58,7 +62,7 @@ describe("Job Routes", () => {
       };
       mockPrisma.job.findUnique.mockResolvedValue(mockJob as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/jobs/job-1" });
+      const res = await app.inject({ method: "GET", url: "/api/jobs/job-1", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       expect(JSON.parse(res.payload).id).toBe("job-1");
@@ -67,7 +71,7 @@ describe("Job Routes", () => {
     it("should return 404 for non-existent job", async () => {
       mockPrisma.job.findUnique.mockResolvedValue(null);
 
-      const res = await app.inject({ method: "GET", url: "/api/jobs/nonexistent" });
+      const res = await app.inject({ method: "GET", url: "/api/jobs/nonexistent", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(404);
     });
@@ -88,6 +92,7 @@ describe("Job Routes", () => {
         method: "POST",
         url: "/api/jobs",
         payload: { projectId: "proj-1", fileName: "plans.pdf", fileSize: 1000 },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -102,6 +107,7 @@ describe("Job Routes", () => {
         method: "POST",
         url: "/api/jobs",
         payload: {},
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -114,6 +120,7 @@ describe("Job Routes", () => {
         method: "POST",
         url: "/api/jobs",
         payload: { projectId: "nonexistent" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -128,6 +135,7 @@ describe("Job Routes", () => {
         method: "POST",
         url: "/api/jobs",
         payload: { projectId: "proj-1", fileSize: TEN_GB_PLUS_ONE },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -145,6 +153,7 @@ describe("Job Routes", () => {
         method: "POST",
         url: "/api/jobs",
         payload: { projectId: "proj-1", fileName: "plans.pdf" },
+        headers: authHeader(token),
       });
 
       const createCall = mockPrisma.job.create.mock.calls[0][0] as any;
@@ -161,7 +170,7 @@ describe("Job Routes", () => {
       const ssot = { version: "1.0.0", items: [] };
       mockPrisma.job.findUnique.mockResolvedValue({ ssot } as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/jobs/j1/ssot" });
+      const res = await app.inject({ method: "GET", url: "/api/jobs/j1/ssot", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       expect(JSON.parse(res.payload)).toEqual(ssot);
@@ -170,7 +179,7 @@ describe("Job Routes", () => {
     it("should return 404 for unknown job", async () => {
       mockPrisma.job.findUnique.mockResolvedValue(null);
 
-      const res = await app.inject({ method: "GET", url: "/api/jobs/missing/ssot" });
+      const res = await app.inject({ method: "GET", url: "/api/jobs/missing/ssot", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(404);
     });
@@ -186,6 +195,7 @@ describe("Job Routes", () => {
         method: "PATCH",
         url: "/api/jobs/j1/ssot",
         payload: { items: ["new"] },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);

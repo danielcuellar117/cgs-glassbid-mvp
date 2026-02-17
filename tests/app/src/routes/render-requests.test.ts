@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
 import { presignedGetUrl } from "../../../../app/src/lib/minio.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
@@ -9,10 +10,12 @@ const mockPresigned = vi.mocked(presignedGetUrl);
 
 describe("Render Request Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("POST /api/render-requests", () => {
@@ -21,6 +24,7 @@ describe("Render Request Routes", () => {
         method: "POST",
         url: "/api/render-requests",
         payload: { jobId: "j1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -42,6 +46,7 @@ describe("Render Request Routes", () => {
         method: "POST",
         url: "/api/render-requests",
         payload: { jobId: "j1", pageNum: 5, kind: "THUMB" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -66,6 +71,7 @@ describe("Render Request Routes", () => {
         method: "POST",
         url: "/api/render-requests",
         payload: { jobId: "j1", pageNum: 5, kind: "THUMB" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -88,6 +94,7 @@ describe("Render Request Routes", () => {
         method: "POST",
         url: "/api/render-requests",
         payload: { jobId: "j1", pageNum: 3, kind: "THUMB" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -113,6 +120,7 @@ describe("Render Request Routes", () => {
         method: "POST",
         url: "/api/render-requests",
         payload: { jobId: "j1", pageNum: 3, kind: "MEASURE" },
+        headers: authHeader(token),
       });
 
       expect(mockPrisma.renderRequest.create).toHaveBeenCalledWith(
@@ -130,6 +138,7 @@ describe("Render Request Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/render-requests/missing",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -147,6 +156,7 @@ describe("Render Request Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/render-requests/rr-1",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -159,6 +169,7 @@ describe("Render Request Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/render-requests",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -173,6 +184,7 @@ describe("Render Request Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/render-requests?jobId=j1",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);

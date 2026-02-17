@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
 
 describe("Pricing Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("GET /api/pricing/pricebook", () => {
@@ -23,6 +26,7 @@ describe("Pricing Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/pricing/pricebook",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -36,6 +40,7 @@ describe("Pricing Routes", () => {
         method: "POST",
         url: "/api/pricing/pricebook",
         payload: { notes: "test" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -53,6 +58,7 @@ describe("Pricing Routes", () => {
         method: "POST",
         url: "/api/pricing/pricebook",
         payload: { effectiveDate: "2025-06-01" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -73,6 +79,7 @@ describe("Pricing Routes", () => {
         method: "POST",
         url: "/api/pricing/pricebook",
         payload: { effectiveDate: "2025-06-01", copyFromVersionId: "v-old" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -86,6 +93,7 @@ describe("Pricing Routes", () => {
         method: "POST",
         url: "/api/pricing/rules",
         payload: { name: "Rule1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -107,6 +115,7 @@ describe("Pricing Routes", () => {
           category: "SHOWER_ENCLOSURE",
           formulaJson: { type: "per_sqft", rate: 45 },
         },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -119,6 +128,7 @@ describe("Pricing Routes", () => {
         method: "POST",
         url: "/api/pricing/override",
         payload: { jobId: "j1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -149,6 +159,7 @@ describe("Pricing Routes", () => {
           unitPrice: 150,
           reason: "Customer negotiation",
         },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -157,7 +168,6 @@ describe("Pricing Routes", () => {
       expect(body.totalPrice).toBe(1500);
       expect(body.manualOverride).toBe(true);
 
-      // Check audit log was created
       expect(mockPrisma.auditLog.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({

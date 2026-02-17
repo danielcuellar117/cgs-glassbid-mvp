@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
 
 describe("Project Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("GET /api/projects", () => {
@@ -21,7 +24,7 @@ describe("Project Routes", () => {
       ];
       mockPrisma.project.findMany.mockResolvedValue(mockProjects as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/projects" });
+      const res = await app.inject({ method: "GET", url: "/api/projects", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       expect(JSON.parse(res.payload)).toHaveLength(2);
@@ -44,7 +47,7 @@ describe("Project Routes", () => {
       };
       mockPrisma.project.findUnique.mockResolvedValue(mockProject as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/projects/p1" });
+      const res = await app.inject({ method: "GET", url: "/api/projects/p1", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.payload);
@@ -55,7 +58,7 @@ describe("Project Routes", () => {
     it("should return 404 for non-existent project", async () => {
       mockPrisma.project.findUnique.mockResolvedValue(null);
 
-      const res = await app.inject({ method: "GET", url: "/api/projects/missing" });
+      const res = await app.inject({ method: "GET", url: "/api/projects/missing", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(404);
     });
@@ -70,6 +73,7 @@ describe("Project Routes", () => {
         method: "POST",
         url: "/api/projects",
         payload: { name: "New Project", clientName: "Client", address: "456 Ave" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(201);
@@ -83,6 +87,7 @@ describe("Project Routes", () => {
         method: "POST",
         url: "/api/projects",
         payload: { name: "P", clientName: "C" },
+        headers: authHeader(token),
       });
 
       expect(mockPrisma.project.create).toHaveBeenCalledWith({
@@ -95,6 +100,7 @@ describe("Project Routes", () => {
         method: "POST",
         url: "/api/projects",
         payload: { clientName: "Client" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -105,6 +111,7 @@ describe("Project Routes", () => {
         method: "POST",
         url: "/api/projects",
         payload: { name: "Name" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -120,6 +127,7 @@ describe("Project Routes", () => {
         method: "PATCH",
         url: "/api/projects/p1",
         payload: { name: "Updated", address: "New Addr" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -133,6 +141,7 @@ describe("Project Routes", () => {
         method: "PATCH",
         url: "/api/projects/p1",
         payload: { name: "Only Name" },
+        headers: authHeader(token),
       });
 
       const call = mockPrisma.project.update.mock.calls[0][0] as any;
@@ -149,6 +158,7 @@ describe("Project Routes", () => {
       const res = await app.inject({
         method: "DELETE",
         url: "/api/projects/p1",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(204);

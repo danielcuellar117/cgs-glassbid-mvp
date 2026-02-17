@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
 
 describe("Audit Log Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("GET /api/audit-log", () => {
@@ -21,7 +24,7 @@ describe("Audit Log Routes", () => {
       ];
       mockPrisma.auditLog.findMany.mockResolvedValue(mockEntries as any);
 
-      const res = await app.inject({ method: "GET", url: "/api/audit-log" });
+      const res = await app.inject({ method: "GET", url: "/api/audit-log", headers: authHeader(token) });
 
       expect(res.statusCode).toBe(200);
       expect(JSON.parse(res.payload)).toHaveLength(2);
@@ -33,6 +36,7 @@ describe("Audit Log Routes", () => {
       await app.inject({
         method: "GET",
         url: "/api/audit-log?jobId=j1",
+        headers: authHeader(token),
       });
 
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith(
@@ -45,7 +49,7 @@ describe("Audit Log Routes", () => {
     it("should apply default limit of 50", async () => {
       mockPrisma.auditLog.findMany.mockResolvedValue([]);
 
-      await app.inject({ method: "GET", url: "/api/audit-log" });
+      await app.inject({ method: "GET", url: "/api/audit-log", headers: authHeader(token) });
 
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith(
         expect.objectContaining({ take: 50 }),
@@ -58,6 +62,7 @@ describe("Audit Log Routes", () => {
       await app.inject({
         method: "GET",
         url: "/api/audit-log?limit=20&offset=10",
+        headers: authHeader(token),
       });
 
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith(
@@ -71,6 +76,7 @@ describe("Audit Log Routes", () => {
       await app.inject({
         method: "GET",
         url: "/api/audit-log?limit=500",
+        headers: authHeader(token),
       });
 
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith(
@@ -81,7 +87,7 @@ describe("Audit Log Routes", () => {
     it("should order by timestamp desc", async () => {
       mockPrisma.auditLog.findMany.mockResolvedValue([]);
 
-      await app.inject({ method: "GET", url: "/api/audit-log" });
+      await app.inject({ method: "GET", url: "/api/audit-log", headers: authHeader(token) });
 
       expect(mockPrisma.auditLog.findMany).toHaveBeenCalledWith(
         expect.objectContaining({

@@ -1,16 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
+import { getTestToken, authHeader } from "../../helpers.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
 
 describe("Measurement Task Routes", () => {
   let app: FastifyInstance;
+  let token: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     app = await buildApp({ logger: false });
+    token = getTestToken(app);
   });
 
   describe("GET /api/measurement-tasks", () => {
@@ -24,6 +27,7 @@ describe("Measurement Task Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/measurement-tasks?jobId=j1",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -34,6 +38,7 @@ describe("Measurement Task Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/measurement-tasks",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -48,6 +53,7 @@ describe("Measurement Task Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/measurement-tasks/t1",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -60,6 +66,7 @@ describe("Measurement Task Routes", () => {
       const res = await app.inject({
         method: "GET",
         url: "/api/measurement-tasks/missing",
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -91,6 +98,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/t1/complete",
         payload: { measuredValue: 36.5, measuredBy: "operator" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -103,6 +111,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/t1/complete",
         payload: {},
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -115,6 +124,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/missing/complete",
         payload: { measuredValue: 10 },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -147,6 +157,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/t1/complete",
         payload: { measuredValue: 42 },
+        headers: authHeader(token),
       });
 
       const updateCall = mockPrisma.job.update.mock.calls[0][0] as any;
@@ -174,6 +185,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/t1/skip",
         payload: { reason: "Not needed" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -191,6 +203,7 @@ describe("Measurement Task Routes", () => {
         method: "PATCH",
         url: "/api/measurement-tasks/missing/skip",
         payload: {},
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -215,6 +228,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/skip-bulk",
         payload: { taskIds: ["t1", "t2"], reason: "Not relevant" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -228,6 +242,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/skip-bulk",
         payload: { taskIds: [], reason: "test" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -238,6 +253,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/skip-bulk",
         payload: { taskIds: ["t1"] },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -250,6 +266,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/skip-bulk",
         payload: { taskIds: ["t1"], reason: "test" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -263,7 +280,7 @@ describe("Measurement Task Routes", () => {
         status: "NEEDS_REVIEW",
         ssot: { items: [{ flags: ["NEEDS_REVIEW"] }] },
       } as any);
-      mockPrisma.measurementTask.findMany.mockResolvedValue([]); // no pending
+      mockPrisma.measurementTask.findMany.mockResolvedValue([]);
       mockPrisma.job.update.mockResolvedValue({} as any);
       mockPrisma.auditLog.create.mockResolvedValue({} as any);
 
@@ -271,6 +288,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/submit-review",
         payload: { jobId: "j1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(200);
@@ -292,6 +310,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/submit-review",
         payload: { jobId: "j1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -309,6 +328,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/submit-review",
         payload: { jobId: "j1" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);
@@ -321,6 +341,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/submit-review",
         payload: { jobId: "missing" },
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(404);
@@ -331,6 +352,7 @@ describe("Measurement Task Routes", () => {
         method: "POST",
         url: "/api/measurement-tasks/submit-review",
         payload: {},
+        headers: authHeader(token),
       });
 
       expect(res.statusCode).toBe(400);

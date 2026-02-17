@@ -13,6 +13,8 @@ describe("Webhook Routes", () => {
     app = await buildApp({ logger: false });
   });
 
+  // Webhook routes are public (no auth needed) per auth plugin PUBLIC_ROUTES
+
   describe("POST /api/webhooks/tus-pre-create", () => {
     const makePreCreateBody = (token: string) => ({
       Event: {
@@ -138,7 +140,6 @@ describe("Webhook Routes", () => {
 
       expect(res.statusCode).toBe(200);
 
-      // StorageObject created with correct key (tusd upload ID, no prefix path)
       expect(mockPrisma.storageObject.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -149,7 +150,6 @@ describe("Webhook Routes", () => {
         }),
       );
 
-      // Job transitioned to UPLOADED, token cleared
       expect(mockPrisma.job.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -175,7 +175,6 @@ describe("Webhook Routes", () => {
         },
       });
 
-      // Will get 403 because token lookup fails, which proves dispatch worked
       expect(res.statusCode).toBe(403);
     });
 

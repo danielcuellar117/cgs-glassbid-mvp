@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Node modules (rebuilt in Docker)
+node_modules
+app/node_modules
+frontend/node_modules
+
+# Build outputs (rebuilt in Docker)
+app/dist
+frontend/dist
+
+# Development files
+.env
+.env.local
+*.md
+LICENSE
+TUTORIAL.md
+
+# IDE
+.vscode
+.cursor
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker compose (not needed inside image)
+docker-compose.yml
+docker-compose.*.yml
+
+# Tests
+**/__tests__
+**/*.test.*
+**/*.spec.*
+worker/tests
+
+# Existing service Dockerfiles (we use root Dockerfile)
+app/Dockerfile
+frontend/Dockerfile
+worker/Dockerfile
