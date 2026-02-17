@@ -53,7 +53,7 @@ RUN apt-get update && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Copy tusd binary ──────────────────────────────────────
-COPY --from=tusd-bin /srv/tusd-bin/tusd /usr/local/bin/tusd
+COPY --from=tusd-bin /usr/local/bin/tusd /usr/local/bin/tusd
 RUN chmod +x /usr/local/bin/tusd
 
 # ── Copy frontend static files ────────────────────────────
