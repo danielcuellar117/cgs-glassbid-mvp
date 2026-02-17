@@ -1,7 +1,10 @@
 import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import sensible from "@fastify/sensible";
+import authPlugin from "./plugins/auth.js";
 import { healthRoutes } from "./routes/health.js";
+import { authRoutes } from "./routes/auth.js";
+import { adminUserRoutes } from "./routes/admin-users.js";
 import { projectRoutes } from "./routes/projects.js";
 import { jobRoutes } from "./routes/jobs.js";
 import { renderRequestRoutes } from "./routes/render-requests.js";
@@ -33,11 +36,15 @@ export async function buildApp(
   const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
   await app.register(cors, {
     origin: [corsOrigin, "http://localhost:5173"],
+    credentials: true,
   });
   await app.register(sensible);
+  await app.register(authPlugin);
 
   // Routes
   await app.register(healthRoutes, { prefix: "/health" });
+  await app.register(authRoutes, { prefix: "/api/auth" });
+  await app.register(adminUserRoutes, { prefix: "/api/admin/users" });
   await app.register(projectRoutes, { prefix: "/api/projects" });
   await app.register(jobRoutes, { prefix: "/api/jobs" });
   await app.register(renderRequestRoutes, { prefix: "/api/render-requests" });

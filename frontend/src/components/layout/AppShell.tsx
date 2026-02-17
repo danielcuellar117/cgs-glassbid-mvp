@@ -1,6 +1,7 @@
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { ChevronRight } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 function Breadcrumbs() {
   const location = useLocation();
@@ -40,13 +41,20 @@ function Breadcrumbs() {
 }
 
 export function AppShell() {
+  const { user } = useAuth();
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}
-        <header className="flex h-14 items-center border-b border-border bg-background px-6">
+        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
           <Breadcrumbs />
+          {user && (
+            <span className="text-xs text-muted-foreground">
+              {user.name} ({user.role})
+            </span>
+          )}
         </header>
 
         {/* Main content */}

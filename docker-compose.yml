@@ -48,6 +48,12 @@ services:
       APP_PORT: ${APP_PORT:-3000}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       TUS_ENDPOINT: ${TUS_ENDPOINT:-http://tusd:8080/files/}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production-32ch}
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:5173/auth/google/callback}
     depends_on:
       postgres:
         condition: service_healthy

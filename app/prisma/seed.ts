@@ -5,7 +5,8 @@
  * Or: npx tsx prisma/seed.ts
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
@@ -100,6 +101,23 @@ async function main() {
     });
   }
   console.log(`  Seeded ${defaultRules.length} pricing rules for pricebook v1`);
+
+  // ─── Default Admin User ──────────────────────────────────────
+  const adminEmail = "admin@luxuriusglass.com";
+  const adminPassword = "admin123";
+  const adminHash = await bcrypt.hash(adminPassword, 12);
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {},
+    create: {
+      email: adminEmail,
+      name: "Admin",
+      role: UserRole.ADMIN,
+      passwordHash: adminHash,
+    },
+  });
+  console.log(`  Seeded admin user: ${adminEmail} / ${adminPassword}`);
 
   console.log("Seeding complete!");
 }

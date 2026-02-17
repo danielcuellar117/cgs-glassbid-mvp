@@ -7,11 +7,14 @@ import {
   Layers,
   Activity,
   FileText,
+  Users,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const operatorLinks = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -24,10 +27,14 @@ const adminLinks = [
   { to: "/admin/templates", icon: Layers, label: "Templates" },
   { to: "/admin/system", icon: Activity, label: "System Health" },
   { to: "/admin/audit", icon: FileText, label: "Audit Log" },
+  { to: "/admin/users", icon: Users, label: "Users" },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const { user, logout } = useAuth();
+
+  const isAdmin = user?.role === "ADMIN";
 
   return (
     <aside
@@ -56,17 +63,47 @@ export function Sidebar() {
           <SidebarLink key={link.to} {...link} collapsed={collapsed} />
         ))}
 
-        <div className="my-3 border-t border-sidebar-border" />
-
-        <SectionLabel collapsed={collapsed}>Admin</SectionLabel>
-        {adminLinks.map((link) => (
-          <SidebarLink key={link.to} {...link} collapsed={collapsed} />
-        ))}
+        {isAdmin && (
+          <>
+            <div className="my-3 border-t border-sidebar-border" />
+            <SectionLabel collapsed={collapsed}>Admin</SectionLabel>
+            {adminLinks.map((link) => (
+              <SidebarLink key={link.to} {...link} collapsed={collapsed} />
+            ))}
+          </>
+        )}
       </nav>
 
-      {/* Footer */}
+      {/* Footer: user info + logout */}
       <div className="border-t border-sidebar-border px-3 py-2">
-        {!collapsed && (
+        {user && (
+          <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-2")}>
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="truncate text-xs font-medium text-foreground">
+                  {user.name}
+                </p>
+                <p className="truncate text-[10px] text-muted-foreground">
+                  {user.role}
+                </p>
+              </div>
+            )}
+            <button
+              onClick={logout}
+              title="Sign out"
+              className={cn(
+                "rounded p-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                collapsed && "mt-2",
+              )}
+            >
+              <LogOut size={16} />
+            </button>
+          </div>
+        )}
+        {!user && !collapsed && (
           <span className="text-xs text-muted-foreground">MVP v0.1</span>
         )}
       </div>

@@ -9,6 +9,11 @@ datasource db {
 
 // ─── Enums ──────────────────────────────────────────────────────────────────
 
+enum UserRole {
+  ADMIN
+  OPERATOR
+}
+
 enum JobStatus {
   CREATED
   UPLOADING
@@ -49,6 +54,23 @@ enum WorkerStatus {
   IDLE
   PROCESSING
   PAUSED
+}
+
+// ─── Users ──────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?  @map("password_hash")
+  name         String
+  role         UserRole @default(OPERATOR)
+  googleId     String?  @unique @map("google_id")
+  tenantId     String   @default("default") @map("tenant_id")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
 }
 
 // ─── Projects ───────────────────────────────────────────────────────────────
