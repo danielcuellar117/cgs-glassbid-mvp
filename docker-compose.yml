@@ -126,8 +126,8 @@ services:
       AWS_ACCESS_KEY_ID: ${MINIO_ACCESS_KEY:-minioadmin}
       AWS_SECRET_ACCESS_KEY: ${MINIO_SECRET_KEY:-minioadmin_secret}
       AWS_REGION: us-east-1
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       minio:
         condition: service_healthy

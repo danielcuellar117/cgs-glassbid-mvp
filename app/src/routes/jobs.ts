@@ -47,7 +47,10 @@ export async function jobRoutes(app: FastifyInstance) {
   app.post<{
     Body: { projectId: string; fileName?: string; fileSize?: number };
   }>("/", async (req, reply) => {
-    const { projectId, fileName, fileSize } = req.body;
+    const body = req.body as Record<string, unknown>;
+    const projectId = body.projectId as string;
+    const fileName = (body.fileName || body.originalFileName) as string | undefined;
+    const fileSize = (body.fileSize || body.originalFileSize) as number | undefined;
     if (!projectId) return reply.badRequest("projectId is required");
 
     // Validate project exists
@@ -101,6 +104,7 @@ export async function jobRoutes(app: FastifyInstance) {
     const tusEndpoint = process.env.TUS_ENDPOINT || "http://localhost:8080/files/";
 
     return reply.status(201).send({
+      id: job.id,
       jobId: job.id,
       uploadToken,
       tusEndpoint,
@@ -116,6 +120,27 @@ export async function jobRoutes(app: FastifyInstance) {
     });
     if (!job) return reply.notFound("Job not found");
     return reply.send(job.ssot);
+  });
+
+  // Delete job and all related data (cascades to measurement_tasks, render_requests, storage_objects)
+  app.delete<{ Params: { id: string } }>("/:id", async (req, reply) => {
+    const job = await prisma.job.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, status: true, lockedBy: true },
+    });
+    if (!job) return reply.notFound("Job not found");
+
+    // Prevent deletion of jobs currently being processed
+    if (job.lockedBy) {
+      return reply.code(409).send({
+        error: "Job is currently being processed by a worker. Try again later.",
+      });
+    }
+
+    await prisma.job.delete({ where: { id: req.params.id } });
+
+    app.log.info({ jobId: req.params.id }, "Job deleted");
+    return reply.status(204).send();
   });
 
   // Update job SSOT (partial update via merge)

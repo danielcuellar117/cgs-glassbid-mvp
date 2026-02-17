@@ -49,14 +49,14 @@ export function NewProject() {
 
         // 3. Upload via TUS
         const tusUpload = new TusUpload(file, {
-          endpoint: "http://localhost:8080/files/",
+          endpoint: "/files/",
           retryDelays: [0, 1000, 3000, 5000, 10000],
           chunkSize: 50 * 1024 * 1024, // 50MB chunks
           metadata: {
             filename: file.name,
             filetype: file.type || "application/pdf",
             jobId: job.id,
-            uploadToken: job.uploadToken ?? "",
+            token: job.uploadToken ?? "",
           },
           onProgress: (bytesUploaded, bytesTotal) => {
             setUploadedBytes(bytesUploaded);

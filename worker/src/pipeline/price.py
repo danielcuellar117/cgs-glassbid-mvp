@@ -133,6 +133,15 @@ def run_pricing(job: dict) -> None:
     # Load pricebook
     pricebook, rules = _get_active_pricebook()
 
+    logger.info(
+        "PRICING_CONTEXT",
+        job_id=job_id,
+        items_count=len(items),
+        pricebook_id=pricebook["id"] if pricebook else None,
+        pricebook_version=pricebook["version"] if pricebook else None,
+        rules_count=len(rules),
+    )
+
     line_items = []
     subtotal = 0.0
 
@@ -210,6 +219,18 @@ def run_pricing(job: dict) -> None:
         }
         line_items.append(line_item)
         subtotal += total_price
+
+        logger.info(
+            "PRICE_LINE_ITEM",
+            job_id=job_id,
+            item_id=item_id,
+            category=category,
+            configuration=item.get("configuration"),
+            unit_price=round(unit_price, 2),
+            quantity=qty,
+            total_price=total_price,
+            rule_used=applied_rule["name"] if applied_rule else "default",
+        )
 
     # Compute totals
     tax_rate = 0.0  # Tax can be configured later

@@ -17,11 +17,14 @@ export interface Job {
   projectId: string;
   status: string;
   progress: unknown;
+  stageProgress: unknown;
   ssot: unknown;
   uploadToken: string | null;
   originalFileName: string | null;
   originalFileSize: number | null;
   storagePath: string | null;
+  errorMessage: string | null;
+  errorCode: string | null;
   createdAt: string;
   updatedAt: string;
 }

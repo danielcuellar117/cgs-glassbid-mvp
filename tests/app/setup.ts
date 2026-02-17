@@ -19,6 +19,8 @@ vi.mock("../../app/src/lib/prisma.js", () => {
         findUnique: vi.fn(),
         findMany: vi.fn(),
         create: vi.fn(),
+        update: vi.fn(),
+        delete: vi.fn(),
       },
       storageObject: {
         create: vi.fn(),
@@ -32,6 +34,12 @@ vi.mock("../../app/src/lib/prisma.js", () => {
       auditLog: {
         create: vi.fn(),
         findMany: vi.fn(),
+      },
+      measurementTask: {
+        findMany: vi.fn(),
+        findUnique: vi.fn(),
+        update: vi.fn(),
+        updateMany: vi.fn(),
       },
       pricebookVersion: {
         findMany: vi.fn(),

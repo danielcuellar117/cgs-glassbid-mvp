@@ -183,6 +183,8 @@ def run_indexing(job: dict) -> None:
         for page_num in range(total_pages):
             page = doc[page_num]
             text = page.get_text("text")
+            text_length = len(text)
+            text_preview = text[:200].replace("\n", " ").strip() if text else "(empty)"
 
             classification, confidence = classify_page(text, page_num, total_pages)
             relevant_to = detect_relevance(text)
@@ -195,6 +197,19 @@ def run_indexing(job: dict) -> None:
             }
             page_index.append(page_entry)
 
+            # Log EVERY page with classification details
+            logger.info(
+                "PAGE_CLASSIFIED",
+                job_id=job_id,
+                page=page_num + 1,
+                total=total_pages,
+                classification=classification,
+                confidence=confidence,
+                relevant_to=relevant_to,
+                text_length=text_length,
+                text_preview=text_preview,
+            )
+
             # Progress update every 50 pages
             if (page_num + 1) % 50 == 0:
                 update_job_status(
@@ -204,12 +219,6 @@ def run_indexing(job: dict) -> None:
                         "current_page": page_num + 1,
                         "total_pages": total_pages,
                     },
-                )
-                logger.debug(
-                    "Indexing progress",
-                    job_id=job_id,
-                    page=page_num + 1,
-                    total=total_pages,
                 )
 
         doc.close()

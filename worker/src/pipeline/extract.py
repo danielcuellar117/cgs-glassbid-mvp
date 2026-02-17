@@ -357,16 +357,40 @@ def run_extraction(job: dict) -> None:
     try:
         doc = fitz.open(local_pdf)
 
+        logger.info(
+            "EXTRACT_START",
+            job_id=job_id,
+            relevant_pages=[p + 1 for p in relevant_pages],
+            total_relevant=len(relevant_pages),
+        )
+
         for page_num in relevant_pages:
             if page_num >= len(doc):
                 continue
 
             page = doc[page_num]
             text = page.get_text("text")
+            text_preview = text[:300].replace("\n", " ").strip() if text else "(empty)"
 
             # Extract items
             items = _extract_items_from_page(doc, page_num, text)
             all_items.extend(items)
+
+            # Log per-page extraction results
+            for item in items:
+                dims = item.get("dimensions", {})
+                logger.info(
+                    "ITEM_EXTRACTED",
+                    job_id=job_id,
+                    page=page_num + 1,
+                    category=item.get("category"),
+                    configuration=item.get("configuration"),
+                    width=dims.get("width", {}).get("value"),
+                    height=dims.get("height", {}).get("value"),
+                    depth=dims.get("depth", {}).get("value"),
+                    glass_type=item.get("glassType"),
+                    flags=item.get("flags", []),
+                )
 
             # Extract assumptions/exclusions from NOTES pages
             page_info = next(
@@ -376,6 +400,23 @@ def run_extraction(job: dict) -> None:
                 assumptions, exclusions = _extract_assumptions(text)
                 all_assumptions.extend(assumptions)
                 all_exclusions.extend(exclusions)
+                logger.info(
+                    "NOTES_EXTRACTED",
+                    job_id=job_id,
+                    page=page_num + 1,
+                    assumptions_count=len(assumptions),
+                    exclusions_count=len(exclusions),
+                )
+
+            logger.info(
+                "EXTRACT_PAGE_DONE",
+                job_id=job_id,
+                page=page_num + 1,
+                items_on_page=len(items),
+                running_total=len(all_items),
+                text_length=len(text),
+                text_preview=text_preview,
+            )
 
             # Progress update
             update_job_status(

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../lib/prisma.js";
-import { presignedGetUrl, BUCKETS } from "../lib/minio.js";
+import { presignedGetUrl, BUCKETS, minioClient } from "../lib/minio.js";
 
 export async function renderRequestRoutes(app: FastifyInstance) {
   // Create a render request (on-demand thumbnail)
@@ -66,6 +66,35 @@ export async function renderRequestRoutes(app: FastifyInstance) {
 
     return reply.send(renderReq);
   });
+
+  // Stream rendered image directly to client (avoids MinIO presigned URL issues)
+  app.get<{ Params: { id: string } }>(
+    "/:id/image",
+    async (req, reply) => {
+      const renderReq = await prisma.renderRequest.findUnique({
+        where: { id: req.params.id },
+      });
+      if (!renderReq) return reply.notFound("Render request not found");
+
+      if (renderReq.status !== "DONE" || !renderReq.outputKey) {
+        return reply.code(202).send({ status: renderReq.status, message: "Not ready yet" });
+      }
+
+      try {
+        const stream = await minioClient.getObject(
+          BUCKETS.PAGE_CACHE,
+          renderReq.outputKey,
+        );
+        const isJpeg = renderReq.outputKey.endsWith(".jpg");
+        reply.header("Content-Type", isJpeg ? "image/jpeg" : "image/png");
+        reply.header("Cache-Control", "public, max-age=86400");
+        return reply.send(stream);
+      } catch (err) {
+        app.log.error({ err, key: renderReq.outputKey }, "Failed to stream render image");
+        return reply.code(404).send({ error: "Image not found in storage" });
+      }
+    },
+  );
 
   // List render requests for a job
   app.get<{ Querystring: { jobId: string } }>(

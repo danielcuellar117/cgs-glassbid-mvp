@@ -49,6 +49,7 @@ export async function webhookRoutes(app: FastifyInstance) {
     const token = metaData?.token;
     const uploadId = upload?.ID as string | undefined;
     const uploadSize = upload?.Size as number | undefined;
+    const storageInfo = upload?.Storage as Record<string, string> | undefined;
 
     if (!token) {
       app.log.warn("tus-post-finish: no token in metadata");
@@ -67,12 +68,18 @@ export async function webhookRoutes(app: FastifyInstance) {
       return reply.status(200).send({});
     }
 
+    // tusd S3 backend stores files using just the hash part of the ID (before the '+')
+    // The Storage.Key field has the actual S3 key, or we extract the hash from the upload ID
+    const s3Key = storageInfo?.Key || (uploadId ? uploadId.split("+")[0] : null) || "source.pdf";
+
+    app.log.info({ uploadId, s3Key, storageInfo }, "tus-post-finish: resolved S3 key");
+
     // Register storage object
     await prisma.storageObject.create({
       data: {
         jobId: job.id,
         bucket: "raw-uploads",
-        key: `${job.projectId}/${job.id}/${uploadId || "source.pdf"}`,
+        key: s3Key,
         sizeBytes: uploadSize ? BigInt(uploadSize) : null,
         contentType: "application/pdf",
         ttlPolicy: "14d",
