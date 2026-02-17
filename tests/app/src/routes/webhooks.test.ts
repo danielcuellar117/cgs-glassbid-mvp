@@ -138,13 +138,13 @@ describe("Webhook Routes", () => {
 
       expect(res.statusCode).toBe(200);
 
-      // StorageObject created with correct key format
+      // StorageObject created with correct key (tusd upload ID, no prefix path)
       expect(mockPrisma.storageObject.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             jobId: "j1",
             bucket: "raw-uploads",
-            key: "p1/j1/upload-abc",
+            key: "upload-abc",
           }),
         }),
       );

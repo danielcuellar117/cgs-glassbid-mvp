@@ -31,19 +31,19 @@ class TestMathError:
         assert len(math_errors) == 0
 
 
-class TestRangeError:
-    """RANGE_ERROR: shower dims [6,240], mirror dims [6,120]."""
+class TestRangeWarning:
+    """RANGE_WARNING: shower dims [6,240], mirror dims [6,120]."""
 
-    def test_golden_ssot_has_no_range_errors(self, golden_ssot):
+    def test_golden_ssot_has_no_range_warnings(self, golden_ssot):
         errors = validate_ssot_for_generation(golden_ssot)
-        range_errors = [e for e in errors if e.code == "RANGE_ERROR"]
+        range_errors = [e for e in errors if e.code == "RANGE_WARNING"]
         assert len(range_errors) == 0
 
     def test_shower_width_below_minimum(self, golden_ssot):
         ssot = copy.deepcopy(golden_ssot)
         ssot["items"][0]["dimensions"]["width"]["value"] = 5
         errors = validate_ssot_for_generation(ssot)
-        range_errors = [e for e in errors if e.code == "RANGE_ERROR"]
+        range_errors = [e for e in errors if e.code == "RANGE_WARNING"]
         assert any("width" in e.message and "5" in e.message for e in range_errors)
 
     def test_shower_width_at_boundary_passes(self, golden_ssot):
@@ -51,14 +51,14 @@ class TestRangeError:
         ssot["items"][0]["dimensions"]["width"]["value"] = 6
         ssot["items"][0]["dimensions"]["height"]["value"] = 240
         errors = validate_ssot_for_generation(ssot)
-        range_errors = [e for e in errors if e.code == "RANGE_ERROR" and e.item_id == "item-001"]
+        range_errors = [e for e in errors if e.code == "RANGE_WARNING" and e.item_id == "item-001"]
         assert len(range_errors) == 0
 
     def test_shower_above_max(self, golden_ssot):
         ssot = copy.deepcopy(golden_ssot)
         ssot["items"][0]["dimensions"]["height"]["value"] = 241
         errors = validate_ssot_for_generation(ssot)
-        range_errors = [e for e in errors if e.code == "RANGE_ERROR" and "241" in e.message]
+        range_errors = [e for e in errors if e.code == "RANGE_WARNING" and "241" in e.message]
         assert len(range_errors) == 1
 
     def test_mirror_above_120(self, golden_ssot):
@@ -66,7 +66,7 @@ class TestRangeError:
         # item-004 is a VANITY_MIRROR
         ssot["items"][3]["dimensions"]["width"]["value"] = 121
         errors = validate_ssot_for_generation(ssot)
-        range_errors = [e for e in errors if e.code == "RANGE_ERROR" and e.item_id == "item-004"]
+        range_errors = [e for e in errors if e.code == "RANGE_WARNING" and e.item_id == "item-004"]
         assert len(range_errors) == 1
 
 
