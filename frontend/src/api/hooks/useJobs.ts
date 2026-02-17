@@ -31,6 +31,17 @@ export function useCreateJob() {
   });
 }
 
+export function useDeleteJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (jobId: string) => api.delete(`/jobs/${jobId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
+  });
+}
+
 export function useJobSsot(jobId: string) {
   return useQuery<Record<string, unknown>>({
     queryKey: ["jobs", "ssot", jobId],

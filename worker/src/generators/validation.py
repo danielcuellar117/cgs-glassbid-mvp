@@ -39,7 +39,7 @@ def validate_ssot_for_generation(ssot: dict) -> list[ValidationError]:
             f"Sum of line item totals ({computed_subtotal:.2f}) != declared subtotal ({declared_subtotal:.2f})",
         ))
 
-    # ─── Range checks ────────────────────────────────────────────
+    # ─── Range checks (warnings -- don't block generation) ──────
     for item in items:
         item_id = item.get("itemId", "unknown")
         category = item.get("category", "")
@@ -52,14 +52,14 @@ def validate_ssot_for_generation(ssot: dict) -> list[ValidationError]:
                 if category == "SHOWER_ENCLOSURE":
                     if val < 6 or val > 240:
                         errors.append(ValidationError(
-                            "RANGE_ERROR",
+                            "RANGE_WARNING",
                             f"Shower {dim_key} ({val}\") out of range [6, 240]",
                             item_id,
                         ))
                 elif category == "VANITY_MIRROR":
                     if val < 6 or val > 120:
                         errors.append(ValidationError(
-                            "RANGE_ERROR",
+                            "RANGE_WARNING",
                             f"Mirror {dim_key} ({val}\") out of range [6, 120]",
                             item_id,
                         ))
@@ -100,12 +100,12 @@ def validate_ssot_for_generation(ssot: dict) -> list[ValidationError]:
                         item_id,
                     ))
 
-    # ─── Template match ──────────────────────────────────────────
+    # ─── Template match (warnings -- don't block generation) ─────
     for item in items:
         config = item.get("configuration", "")
         if config == "unknown" or not config:
             errors.append(ValidationError(
-                "TEMPLATE_ERROR",
+                "TEMPLATE_WARNING",
                 f"Item {item.get('itemId')} has no configuration mapping",
                 item.get("itemId"),
             ))

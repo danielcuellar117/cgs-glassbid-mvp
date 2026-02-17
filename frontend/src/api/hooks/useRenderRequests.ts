@@ -8,7 +8,8 @@ export interface RenderRequest {
   kind: string;
   dpi: number;
   status: string;
-  outputPath: string | null;
+  outputKey: string | null;
+  downloadUrl?: string | null;
   createdAt: string;
   completedAt: string | null;
 }

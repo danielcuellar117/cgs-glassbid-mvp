@@ -54,7 +54,7 @@ def claim_main_job(worker_id: str) -> Optional[dict]:
                 SELECT id, project_id, status, ssot, stage_progress,
                        retry_count, max_retries
                 FROM jobs
-                WHERE status IN ('UPLOADED', 'REVIEWED', 'PRICED')
+                WHERE status IN ('UPLOADED', 'EXTRACTED', 'REVIEWED', 'PRICED')
                   AND (locked_at IS NULL
                        OR locked_at < NOW() - INTERVAL '10 minutes')
                   AND (next_run_at IS NULL OR next_run_at <= NOW())

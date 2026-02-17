@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { buildApp } from "../../../../app/src/server.js";
 import { prisma } from "../../../../app/src/lib/prisma.js";
-import { presignedGetUrl } from "../../../../app/src/lib/minio.js";
 import type { FastifyInstance } from "fastify";
 
 const mockPrisma = vi.mocked(prisma);
-const mockPresigned = vi.mocked(presignedGetUrl);
 
 describe("Download Routes", () => {
   let app: FastifyInstance;
@@ -43,16 +41,15 @@ describe("Download Routes", () => {
       expect(body.outputs).toEqual([]);
     });
 
-    it("should generate presigned URLs for each output", async () => {
+    it("should return proxy download URLs for each output", async () => {
       const outputs = [
-        { bucket: "outputs", key: "bid.pdf", type: "BID" },
-        { bucket: "outputs", key: "shop.pdf", type: "SHOP_DRAWINGS" },
+        { bucket: "outputs", key: "bid.pdf", type: "BID", outputId: "out-1" },
+        { bucket: "outputs", key: "shop.pdf", type: "SHOP_DRAWINGS", outputId: "out-2" },
       ];
       mockPrisma.job.findUnique.mockResolvedValue({
         ssot: { outputs },
         status: "DONE",
       } as any);
-      mockPresigned.mockResolvedValue("https://minio.test/signed");
 
       const res = await app.inject({
         method: "GET",
@@ -62,9 +59,8 @@ describe("Download Routes", () => {
       expect(res.statusCode).toBe(200);
       const body = JSON.parse(res.payload);
       expect(body.outputs).toHaveLength(2);
-      expect(body.outputs[0].downloadUrl).toBe("https://minio.test/signed");
-      expect(mockPresigned).toHaveBeenCalledTimes(2);
-      expect(mockPresigned).toHaveBeenCalledWith("outputs", "bid.pdf", 900);
+      expect(body.outputs[0].downloadUrl).toBe("/api/downloads/j1/file/out-1");
+      expect(body.outputs[1].downloadUrl).toBe("/api/downloads/j1/file/out-2");
     });
   });
 

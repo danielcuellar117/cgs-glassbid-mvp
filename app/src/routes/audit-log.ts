@@ -18,7 +18,7 @@ export async function auditLogRoutes(app: FastifyInstance) {
 
     const entries = await prisma.auditLog.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: { timestamp: "desc" },
       take,
       skip,
     });

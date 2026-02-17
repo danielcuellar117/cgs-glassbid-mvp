@@ -1,17 +1,29 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useJob } from "@/api/hooks/useJobs";
+import { useJob, useDeleteJob } from "@/api/hooks/useJobs";
 import { PipelineStepper } from "@/components/shared/PipelineStepper";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatDate } from "@/lib/utils";
-import { Loader2, ArrowRight, RefreshCw, AlertTriangle } from "lucide-react";
+import { Loader2, ArrowRight, RefreshCw, AlertTriangle, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+function StageProgressDisplay({ stageProgress }: { stageProgress: Record<string, unknown> }) {
+  const stage = String(stageProgress.stage ?? "Processing");
+  const suffix = stageProgress.status === "complete" ? " - Complete" : "";
+  return (
+    <div className="mt-4 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+      <p className="text-sm text-muted-foreground capitalize">{stage}{suffix}</p>
+    </div>
+  );
+}
 
 export function JobStatus() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: job, isLoading, refetch } = useJob(id!);
+  const deleteJob = useDeleteJob();
   const [sseStatus, setSseStatus] = useState<string | null>(null);
   const [sseProgress, setSseProgress] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const esRef = useRef<EventSource | null>(null);
 
   // SSE connection for real-time updates
@@ -20,18 +32,35 @@ export function JobStatus() {
     const es = new EventSource(`/api/sse/jobs/${id}`);
     esRef.current = es;
 
-    es.onmessage = (event) => {
+    // Backend sends named events: "status" and "complete"
+    es.addEventListener("status", (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.status) setSseStatus(data.status);
-        if (data.progress) setSseProgress(JSON.stringify(data.progress));
+        if (data.stageProgress) {
+          const sp = data.stageProgress;
+          const stage = sp.stage || "";
+          const pct = sp.current_page && sp.total_pages
+            ? ` (${sp.current_page}/${sp.total_pages} pages)`
+            : sp.pages_processed && sp.total_pages
+              ? ` (${sp.pages_processed}/${sp.total_pages} pages)`
+              : "";
+          const items = sp.items_found != null ? ` | ${sp.items_found} items found` : "";
+          setSseProgress(`${stage}${pct}${items}`);
+        }
         refetch();
       } catch {
         // ignore parse errors
       }
-    };
+    });
+
+    es.addEventListener("complete", () => {
+      refetch();
+      es.close();
+    });
 
     es.onerror = () => {
+      // SSE failed (e.g. Nginx buffering), fall back to polling
       es.close();
     };
 
@@ -39,6 +68,14 @@ export function JobStatus() {
       es.close();
     };
   }, [id, refetch]);
+
+  // Polling fallback: refetch every 3 seconds when job is in-progress
+  useEffect(() => {
+    const status = sseStatus || job?.status;
+    if (!status || status === "DONE" || status === "FAILED" || status === "CREATED") return;
+    const interval = setInterval(() => refetch(), 3000);
+    return () => clearInterval(interval);
+  }, [sseStatus, job?.status, refetch]);
 
   if (isLoading || !job) {
     return (
@@ -63,7 +100,30 @@ export function JobStatus() {
             {job.id.slice(0, 8)}... | {job.originalFileName ?? "Unknown file"}
           </p>
         </div>
-        <StatusBadge status={status} className="text-sm px-3 py-1" />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={status} className="text-sm px-3 py-1" />
+          <button
+            onClick={() => {
+              if (isDeleting) return;
+              if (!window.confirm("Delete this job? This cannot be undone.")) return;
+              setIsDeleting(true);
+              deleteJob.mutate(id!, {
+                onSuccess: () => navigate(-1),
+                onSettled: () => setIsDeleting(false),
+              });
+            }}
+            disabled={isDeleting}
+            className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 px-3 py-1.5 text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+            title="Delete this job"
+          >
+            {isDeleting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Trash2 size={14} />
+            )}
+            Delete
+          </button>
+        </div>
       </div>
 
       {/* Pipeline Stepper */}
@@ -71,8 +131,16 @@ export function JobStatus() {
         <PipelineStepper currentStatus={status} />
 
         {sseProgress && (
-          <p className="mt-4 text-sm text-muted-foreground">{sseProgress}</p>
+          <div className="mt-4 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+            <Loader2 size={14} className="animate-spin text-primary" />
+            <p className="text-sm font-medium text-foreground capitalize">{sseProgress}</p>
+          </div>
         )}
+
+        {/* Show stageProgress from job data as fallback */}
+        {!sseProgress && job.stageProgress != null && typeof job.stageProgress === "object" ? (
+          <StageProgressDisplay stageProgress={job.stageProgress as Record<string, unknown>} />
+        ) : null}
       </div>
 
       {/* Action cards based on state */}

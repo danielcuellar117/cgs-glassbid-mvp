@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppShell } from "./components/layout/AppShell";
 
@@ -39,8 +39,10 @@ export default function App() {
           <Route element={<AppShell />}>
             {/* Operator */}
             <Route path="/" element={<Dashboard />} />
+            <Route path="/projects" element={<Navigate to="/" replace />} />
             <Route path="/projects/new" element={<NewProject />} />
             <Route path="/projects/:id" element={<ProjectDetail />} />
+            <Route path="/jobs" element={<Navigate to="/" replace />} />
             <Route path="/jobs/:id" element={<JobStatus />} />
             <Route path="/jobs/:id/pages" element={<PageIndex />} />
             <Route path="/jobs/:id/review" element={<ReviewEdit />} />

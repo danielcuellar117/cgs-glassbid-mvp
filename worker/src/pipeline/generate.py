@@ -52,6 +52,15 @@ def run_generation(job: dict) -> None:
     # ─── QA Validation Gate ──────────────────────────────────────
     errors = validate_ssot_for_generation(ssot)
 
+    logger.info(
+        "GENERATION_VALIDATION",
+        job_id=job_id,
+        items_count=len(ssot.get("items", [])),
+        pricing_total=ssot.get("pricing", {}).get("total"),
+        validation_errors=len(errors),
+        error_codes=[e.code for e in errors],
+    )
+
     # Filter out warnings (non-blocking)
     blocking_errors = [e for e in errors if "WARNING" not in e.code]
 
@@ -62,8 +71,8 @@ def run_generation(job: dict) -> None:
             job_id=job_id, errors=error_list,
         )
         update_job_status(
-            job_id, "PRICED",  # Revert to PRICED so user can fix issues
-            error_message=f"Validation failed: {len(blocking_errors)} error(s)",
+            job_id, "FAILED",
+            error_message=f"Generation validation failed: {len(blocking_errors)} error(s)",
             error_code="VALIDATION_ERROR",
             ssot=ssot,
             stage_progress={
@@ -127,7 +136,14 @@ def run_generation(job: dict) -> None:
         except Exception as e:
             logger.warning("Could not register storage object", error=str(e))
 
-        logger.info("Bid PDF generated", job_id=job_id, key=bid_minio_key)
+        logger.info(
+            "BID_PDF_GENERATED",
+            job_id=job_id,
+            key=bid_minio_key,
+            version=bid_version,
+            size_bytes=bid_size,
+            sha256=bid_sha256[:16],
+        )
 
     except Exception as e:
         logger.error("Bid PDF generation failed", job_id=job_id, error=str(e))
@@ -176,7 +192,14 @@ def run_generation(job: dict) -> None:
         except Exception as e:
             logger.warning("Could not register shop drawings storage object", error=str(e))
 
-        logger.info("Shop Drawings PDF generated", job_id=job_id, key=shop_minio_key)
+        logger.info(
+            "SHOP_DRAWINGS_GENERATED",
+            job_id=job_id,
+            key=shop_minio_key,
+            version=shop_version,
+            size_bytes=shop_size,
+            sha256=shop_sha256[:16],
+        )
 
     except ImportError:
         logger.info("Shop Drawings generator not yet implemented (Phase 5)")

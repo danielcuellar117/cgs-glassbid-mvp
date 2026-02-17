@@ -4,14 +4,14 @@ import { api } from "../client";
 export interface MeasurementTask {
   id: string;
   jobId: string;
-  itemKey: string;
-  field: string;
-  pageNum: number | null;
+  itemId: string;
+  dimensionKey: string;
+  pageNum: number;
   status: string;
+  calibrationJson: unknown;
   measuredValue: number | null;
   measuredBy: string | null;
   measuredAt: string | null;
-  auditTrail: unknown;
   createdAt: string;
 }
 
@@ -30,13 +30,13 @@ export function useCompleteMeasurementTask() {
       id,
       measuredValue,
       measuredBy,
-      auditTrail,
+      calibration,
     }: {
       id: string;
       measuredValue: number;
       measuredBy?: string;
-      auditTrail?: unknown;
-    }) => api.post(`/measurement-tasks/${id}/complete`, { measuredValue, measuredBy, auditTrail }),
+      calibration?: Record<string, unknown>;
+    }) => api.patch(`/measurement-tasks/${id}/complete`, { measuredValue, measuredBy, calibration }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["measurement-tasks"] });
     },
@@ -46,8 +46,19 @@ export function useCompleteMeasurementTask() {
 export function useSkipMeasurementTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      api.post(`/measurement-tasks/${id}/skip`, { reason }),
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.patch(`/measurement-tasks/${id}/skip`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["measurement-tasks"] });
+    },
+  });
+}
+
+export function useBulkSkipMeasurementTasks() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ taskIds, reason }: { taskIds: string[]; reason: string }) =>
+      api.post(`/measurement-tasks/skip-bulk`, { taskIds, reason }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["measurement-tasks"] });
     },

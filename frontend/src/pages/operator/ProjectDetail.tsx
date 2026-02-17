@@ -1,10 +1,10 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useProject, useUpdateProject } from "@/api/hooks/useProjects";
-import { useJobs } from "@/api/hooks/useJobs";
+import { useJobs, useDeleteJob } from "@/api/hooks/useJobs";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { formatDate, formatBytes } from "@/lib/utils";
-import { Loader2, Plus, Pencil, Check, X } from "lucide-react";
+import { Loader2, Plus, Pencil, Check, X, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { Job } from "@/api/hooks/useProjects";
 
@@ -14,7 +14,9 @@ export function ProjectDetail() {
   const { data: project, isLoading } = useProject(id!);
   const { data: jobs } = useJobs(id);
   const updateProject = useUpdateProject();
+  const deleteJob = useDeleteJob();
   const [editing, setEditing] = useState(false);
+  const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editClient, setEditClient] = useState("");
   const [editAddress, setEditAddress] = useState("");
@@ -80,6 +82,32 @@ export function ProjectDetail() {
       sortable: true,
       render: (row) => (
         <span className="text-sm text-muted-foreground">{formatDate(row.createdAt)}</span>
+      ),
+    },
+    {
+      key: "actions" as keyof Job,
+      header: "",
+      render: (row) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (deletingJobId === row.id) return;
+            if (!window.confirm(`Delete job ${row.id.slice(0, 8)}...? This cannot be undone.`)) return;
+            setDeletingJobId(row.id);
+            deleteJob.mutate(row.id, {
+              onSettled: () => setDeletingJobId(null),
+            });
+          }}
+          disabled={deletingJobId === row.id}
+          className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+          title="Delete job"
+        >
+          {deletingJobId === row.id ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Trash2 size={14} />
+          )}
+        </button>
       ),
     },
   ];

@@ -178,6 +178,91 @@ export async function measurementTaskRoutes(app: FastifyInstance) {
     },
   );
 
+  // Bulk skip measurement tasks (e.g. skip all tasks on a page)
+  app.post<{
+    Body: { taskIds: string[]; reason: string };
+  }>("/skip-bulk", async (req, reply) => {
+    const { taskIds, reason } = req.body;
+    if (!taskIds?.length) return reply.badRequest("taskIds array is required");
+    if (!reason?.trim()) return reply.badRequest("reason is required");
+
+    const tasks = await prisma.measurementTask.findMany({
+      where: { id: { in: taskIds }, status: "PENDING" },
+    });
+
+    if (tasks.length === 0) {
+      return reply.badRequest("No pending tasks found for the given IDs");
+    }
+
+    // Update all tasks to SKIPPED
+    await prisma.measurementTask.updateMany({
+      where: { id: { in: tasks.map((t) => t.id) } },
+      data: { status: "SKIPPED" },
+    });
+
+    // Update SSOT for each affected job (typically one job)
+    const jobIds = [...new Set(tasks.map((t) => t.jobId))];
+    for (const jobId of jobIds) {
+      const job = await prisma.job.findUnique({
+        where: { id: jobId },
+        select: { ssot: true },
+      });
+      if (!job) continue;
+
+      const ssot = job.ssot as any;
+      const skippedTaskIds = new Set(tasks.filter((t) => t.jobId === jobId).map((t) => t.id));
+
+      // Update SSOT items
+      if (ssot?.items) {
+        for (const task of tasks.filter((t) => t.jobId === jobId)) {
+          const item = ssot.items.find((i: any) => i.itemId === task.itemId);
+          if (item) {
+            const flags = item.flags || [];
+            if (!flags.includes("TO_BE_VERIFIED_IN_FIELD")) {
+              flags.push("TO_BE_VERIFIED_IN_FIELD");
+            }
+            item.flags = flags;
+          }
+        }
+      }
+
+      // Update SSOT measurement tasks
+      if (ssot?.measurementTasks) {
+        for (const mt of ssot.measurementTasks) {
+          if (skippedTaskIds.has(mt.taskId)) {
+            mt.status = "SKIPPED";
+            mt.skipReason = reason;
+          }
+        }
+      }
+
+      await prisma.job.update({
+        where: { id: jobId },
+        data: { ssot: ssot as any },
+      });
+
+      // Audit log
+      await prisma.auditLog.create({
+        data: {
+          jobId,
+          actor: "user",
+          action: "MEASUREMENT_TASKS_BULK_SKIPPED",
+          diffJson: {
+            taskIds: [...skippedTaskIds],
+            reason,
+            count: skippedTaskIds.size,
+          },
+        },
+      });
+    }
+
+    return reply.send({
+      skipped: tasks.length,
+      reason,
+      taskIds: tasks.map((t) => t.id),
+    });
+  });
+
   // Submit review: mark all tasks as reviewed and advance job
   app.post<{ Body: { jobId: string } }>("/submit-review", async (req, reply) => {
     const { jobId } = req.body;

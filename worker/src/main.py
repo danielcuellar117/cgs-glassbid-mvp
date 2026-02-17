@@ -60,10 +60,14 @@ signal.signal(signal.SIGINT, _handle_signal)
 
 # ─── Pipeline Dispatch ───────────────────────────────────────────────────────
 
-# Map from current job status to the pipeline stage function to run
+# Map from current job status to the pipeline stage function to run.
+# UPLOADED runs the FULL pipeline (indexing -> routing -> extraction -> pricing -> generation).
+# If extraction flags NEEDS_REVIEW, the loop breaks early and resumes after human review.
+# EXTRACTED handles jobs that were left at EXTRACTED from a previous run or restart.
 STATUS_TO_STAGE = {
-    "UPLOADED": [run_indexing, run_routing, run_extraction],
-    "REVIEWED": [run_pricing],
+    "UPLOADED": [run_indexing, run_routing, run_extraction, run_pricing, run_generation],
+    "EXTRACTED": [run_pricing, run_generation],
+    "REVIEWED": [run_pricing, run_generation],
     "PRICED": [run_generation],
 }
 
@@ -106,18 +110,33 @@ def process_main_job(job: dict) -> None:
     )
 
     try:
-        for stage_fn in stages:
+        for i, stage_fn in enumerate(stages):
             if _shutdown:
                 logger.info("Shutdown requested, pausing job", job_id=job_id)
-                # Release lock so another worker can pick it up
                 db.update_job_status(
                     job_id, status, clear_lock=True,
                 )
                 return
 
-            # Reload job state before each stage
-            # (in case SSOT was updated during a previous stage)
+            logger.info(
+                "STAGE_START",
+                job_id=job_id,
+                stage=stage_fn.__name__,
+                stage_num=i + 1,
+                total_stages=len(stages),
+            )
+
+            import time as _time
+            t0 = _time.time()
             stage_fn(job)
+            elapsed = round(_time.time() - t0, 2)
+
+            logger.info(
+                "STAGE_COMPLETE",
+                job_id=job_id,
+                stage=stage_fn.__name__,
+                elapsed_seconds=elapsed,
+            )
 
             # Refresh job dict with latest ssot after stage
             # (stages update ssot via db, so we re-read)
@@ -138,6 +157,24 @@ def process_main_job(job: dict) -> None:
             if job["status"] == "NEEDS_REVIEW":
                 logger.info("Job needs review, pausing", job_id=job_id)
                 return
+
+        # If we completed all stages successfully, release the lock
+        logger.info(
+            "JOB_PROCESSING_COMPLETE",
+            job_id=job_id,
+            final_status=job.get("status"),
+        )
+        # Release lock after successful completion (unless already released by a stage)
+        try:
+            from .db import get_cursor as _gc
+            with _gc() as (cur, conn):
+                cur.execute(
+                    "UPDATE jobs SET locked_at = NULL, locked_by = NULL WHERE id = %s",
+                    (job_id,),
+                )
+                conn.commit()
+        except Exception:
+            pass
 
     except Exception as e:
         logger.error(
@@ -251,6 +288,12 @@ def main_loop() -> None:
             if config.WORKER_MODE == "full" and not render_processed:
                 job = db.claim_main_job(config.WORKER_ID)
                 if job:
+                    logger.info(
+                        "JOB_CLAIMED",
+                        job_id=job["id"],
+                        status=job["status"],
+                        retry_count=job.get("retry_count", 0),
+                    )
                     db.upsert_heartbeat(
                         config.WORKER_ID, "PROCESSING",
                         current_job_id=job["id"],

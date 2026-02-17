@@ -44,27 +44,42 @@ def run_routing(job: dict) -> None:
     relevant_pages = []
     for page in page_index:
         is_relevant = False
+        reason = []
 
         # Relevant if classification suggests content
         if page.get("classification") in RELEVANT_CLASSIFICATIONS:
             is_relevant = True
+            reason.append(f"classification={page['classification']}")
 
         # Relevant if keywords detected
         if page.get("relevantTo") and len(page["relevantTo"]) > 0:
             is_relevant = True
+            reason.append(f"keywords={page['relevantTo']}")
 
         # Floor plans may have shower/mirror layouts
         if page.get("classification") == "FLOOR_PLAN" and page.get("relevantTo"):
             is_relevant = True
+            reason.append("floor_plan_with_keywords")
+
+        logger.info(
+            "ROUTE_DECISION",
+            job_id=job_id,
+            page=page["pageNum"] + 1,
+            classification=page.get("classification"),
+            relevant_to=page.get("relevantTo", []),
+            is_relevant=is_relevant,
+            reason=", ".join(reason) if reason else "none",
+        )
 
         if is_relevant:
             relevant_pages.append(page["pageNum"])
 
     logger.info(
-        "Routing complete",
+        "ROUTING_SUMMARY",
         job_id=job_id,
         total_pages=len(page_index),
         relevant_count=len(relevant_pages),
+        relevant_page_nums=[p + 1 for p in relevant_pages],
     )
 
     # Create eager render requests for relevant pages (thumbnails)
