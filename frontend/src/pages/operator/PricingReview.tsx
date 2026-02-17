@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useJobSsot, useUpdateSsot } from "@/api/hooks/useJobs";
 import { usePriceOverride } from "@/api/hooks/usePricing";
 import { Loader2, DollarSign, ArrowRight, AlertCircle } from "lucide-react";
@@ -65,6 +65,11 @@ export function PricingReview() {
   }, [overrideDialog, overridePrice, overrideReason, id, priceOverride, refetch]);
 
   const handleGenerate = useCallback(async () => {
+    const confirmed = globalThis.confirm(
+      "This will generate your Bid Proposal and Shop Drawings PDFs. Make sure all prices are correct before proceeding.\n\nContinue?",
+    );
+    if (!confirmed) return;
+
     setGenerating(true);
     setGenError(null);
     try {
@@ -121,11 +126,18 @@ export function PricingReview() {
       )}
 
       {items.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <DollarSign size={32} className="mx-auto mb-2 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            No pricing data yet. Complete the review stage first.
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+          <DollarSign size={32} className="mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No pricing data yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pricing will be calculated after you review all extracted items and submit for pricing.
           </p>
+          <Link
+            to={`/jobs/${id}/review`}
+            className="mt-4 text-sm font-medium text-primary hover:underline"
+          >
+            Go to Review &rarr;
+          </Link>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-card">

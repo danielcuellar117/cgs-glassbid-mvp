@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useCreateRenderRequest, useRenderRequest } from "@/api/hooks/useRenderRequests";
+import { getAccessToken } from "@/contexts/AuthContext";
 import { Loader2, ImageOff, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function buildAuthImageUrl(renderRequestId: string): string {
+  const token = getAccessToken();
+  const base = `/api/render-requests/${renderRequestId}/image`;
+  return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+}
 
 interface PageThumbnailProps {
   readonly jobId: string;
@@ -48,7 +55,7 @@ export function PageThumbnail({ jobId, pageNum, className, onClick }: PageThumbn
       {
         onSuccess: (data: any) => {
           if (data.status === "DONE" && (data.outputKey || data.output_key)) {
-            setImageUrl(`/api/render-requests/${data.id}/image`);
+            setImageUrl(buildAuthImageUrl(data.id));
           } else {
             setRequestId(data.id);
           }
@@ -63,7 +70,7 @@ export function PageThumbnail({ jobId, pageNum, className, onClick }: PageThumbn
     if (!requestId || imageUrl) return;
     const data = renderRequest.data as any;
     if (data?.status === "DONE" && (data.outputKey || data.output_key)) {
-      setImageUrl(`/api/render-requests/${data.id}/image`);
+      setImageUrl(buildAuthImageUrl(data.id));
     } else if (data?.status === "FAILED") {
       setError(true);
     }

@@ -61,6 +61,7 @@ export default function App() {
                 <Route path="/jobs/:id" element={<JobStatus />} />
                 <Route path="/jobs/:id/pages" element={<PageIndex />} />
                 <Route path="/jobs/:id/review" element={<ReviewEdit />} />
+                <Route path="/jobs/:id/measure" element={<Navigate to="1" replace />} />
                 <Route path="/jobs/:id/measure/:pageNum" element={<MeasurementTool />} />
                 <Route path="/jobs/:id/pricing" element={<PricingReview />} />
                 <Route path="/jobs/:id/results" element={<Results />} />

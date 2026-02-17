@@ -1,10 +1,10 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useProject, useUpdateProject } from "@/api/hooks/useProjects";
 import { useJobs, useDeleteJob } from "@/api/hooks/useJobs";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { DataTable, type Column } from "@/components/shared/DataTable";
 import { formatDate, formatBytes } from "@/lib/utils";
-import { Loader2, Plus, Pencil, Check, X, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Check, X, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { Job } from "@/api/hooks/useProjects";
 
@@ -177,12 +177,6 @@ export function ProjectDetail() {
       {/* Jobs */}
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Jobs</h2>
-        <Link
-          to="/projects/new"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
-        >
-          <Plus size={14} /> Upload New PDF
-        </Link>
       </div>
 
       <DataTable

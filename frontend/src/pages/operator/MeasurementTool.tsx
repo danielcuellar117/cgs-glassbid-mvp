@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useMeasurementTasks, useCompleteMeasurementTask, useSkipMeasurementTask, useBulkSkipMeasurementTasks } from "@/api/hooks/useMeasurementTasks";
 import { useCreateRenderRequest, useRenderRequest } from "@/api/hooks/useRenderRequests";
 import { SkipReasonDialog } from "@/components/shared/SkipReasonDialog";
-import { Loader2, ZoomIn, ZoomOut, Crosshair, Ruler, RotateCcw, MonitorUp, SkipForward, Ban, Info, CheckCircle2, ArrowRight, Move } from "lucide-react";
+import { Loader2, ZoomIn, ZoomOut, Crosshair, Ruler, RotateCcw, MonitorUp, SkipForward, Ban, Info, CheckCircle2, ArrowRight, Move, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useRef,
@@ -12,6 +12,7 @@ import {
   useMemo,
   type MouseEvent as ReactMouseEvent,
 } from "react";
+import { getAccessToken } from "@/contexts/AuthContext";
 
 type ToolMode = "pan" | "calibrate" | "measure";
 
@@ -31,6 +32,15 @@ const MINIMAP_MAX_W = 480;
 const MINIMAP_MAX_H = 360;
 const ELASTIC_FACTOR = 0.25;
 const SNAP_SPEED = 0.15;
+const HIT_RADIUS_PX = 12;
+const LINE_HIT_DIST_PX = 8;
+
+type DragTarget =
+  | { kind: "calib-pt"; idx: 0 | 1 }
+  | { kind: "measure-pt"; idx: 0 | 1 }
+  | { kind: "calib-line"; anchorOffset: [Point, Point] }
+  | { kind: "measure-line"; anchorOffset: [Point, Point] }
+  | null;
 
 const FRACTION_OPTIONS = [
   { label: "0", value: 0 },
@@ -102,6 +112,8 @@ export function MeasurementTool() {
   const measurePointsRef = useRef<Point[]>([]);
   const measuredDistRef = useRef<number | null>(null);
   const canvasSizeRef = useRef<{ w: number; h: number }>({ w: 800, h: 600 });
+  const dragTargetRef = useRef<DragTarget>(null);
+  const dragAnchorImgRef = useRef<Point>({ x: 0, y: 0 });
 
   // ── React state for UI ──
   const [tool, setTool] = useState<ToolMode>("pan");
@@ -123,6 +135,7 @@ export function MeasurementTool() {
   const [minimapSize, setMinimapSize] = useState<{ w: number; h: number }>({ w: MINIMAP_MIN_W, h: MINIMAP_MIN_H });
   const [calibPointCount, setCalibPointCount] = useState(0);
   const [measurePointCount, setMeasurePointCount] = useState(0);
+  const [canvasCursor, setCanvasCursor] = useState<string>("default");
 
   const { data: tasks } = useMeasurementTasks(jobId!);
   const completeMeasurement = useCompleteMeasurementTask();
@@ -155,7 +168,9 @@ export function MeasurementTool() {
   const imageUrl = useMemo(() => {
     const d = renderReq.data;
     if (d?.status === "DONE" && d.outputKey) {
-      return `/api/render-requests/${d.id}/image`;
+      const token = getAccessToken();
+      const base = `/api/render-requests/${d.id}/image`;
+      return token ? `${base}?token=${encodeURIComponent(token)}` : base;
     }
     return null;
   }, [renderReq.data]);
@@ -220,28 +235,32 @@ export function MeasurementTool() {
     if (cPts.length > 0) {
       ctx.strokeStyle = "#f97316";
       ctx.lineWidth = 2 / z;
-      for (const p of cPts) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 6 / z, 0, Math.PI * 2);
-        ctx.stroke();
-      }
       if (cPts.length === 2) {
         ctx.beginPath();
         ctx.moveTo(cPts[0].x, cPts[0].y);
         ctx.lineTo(cPts[1].x, cPts[1].y);
         ctx.stroke();
       }
+      for (const p of cPts) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7 / z, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(249,115,22,0.2)";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4 / z, 0, Math.PI * 2);
+        ctx.fillStyle = "#f97316";
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5 / z;
+        ctx.stroke();
+        ctx.strokeStyle = "#f97316";
+        ctx.lineWidth = 2 / z;
+      }
     }
 
     if (mPts.length > 0) {
       ctx.strokeStyle = "#3b82f6";
       ctx.lineWidth = 2 / z;
-      for (const p of mPts) {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 5 / z, 0, Math.PI * 2);
-        ctx.fillStyle = "#3b82f6";
-        ctx.fill();
-      }
       if (mPts.length === 2) {
         ctx.beginPath();
         ctx.moveTo(mPts[0].x, mPts[0].y);
@@ -250,11 +269,32 @@ export function MeasurementTool() {
         if (mDist != null) {
           const mx = (mPts[0].x + mPts[1].x) / 2;
           const my = (mPts[0].y + mPts[1].y) / 2 - 10 / z;
-          ctx.fillStyle = "#1e40af";
+          ctx.save();
+          const txt = toArchitecturalString(mDist);
           ctx.font = `bold ${14 / z}px sans-serif`;
           ctx.textAlign = "center";
-          ctx.fillText(toArchitecturalString(mDist), mx, my);
+          const textW = ctx.measureText(txt).width;
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.fillRect(mx - textW / 2 - 4 / z, my - 12 / z, textW + 8 / z, 16 / z);
+          ctx.fillStyle = "#1e40af";
+          ctx.fillText(txt, mx, my);
+          ctx.restore();
         }
+      }
+      for (const p of mPts) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7 / z, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(59,130,246,0.2)";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4 / z, 0, Math.PI * 2);
+        ctx.fillStyle = "#3b82f6";
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5 / z;
+        ctx.stroke();
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 2 / z;
       }
     }
 
@@ -390,6 +430,91 @@ export function MeasurementTool() {
     [],
   );
 
+  // ── Hit-detection helpers ──
+  const distToPoint = useCallback((a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y), []);
+
+  const distToSegment = useCallback((p: Point, a: Point, b: Point): number => {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return distToPoint(p, a);
+    let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+  }, [distToPoint]);
+
+  const hitTest = useCallback((imgPt: Point): DragTarget => {
+    const z = zoomRef.current;
+    const ptThresh = HIT_RADIUS_PX / z;
+    const lineThresh = LINE_HIT_DIST_PX / z;
+
+    const cPts = calibPointsRef.current;
+    if (cPts.length >= 1) {
+      for (let i = 0; i < cPts.length; i++) {
+        if (distToPoint(imgPt, cPts[i]) < ptThresh) return { kind: "calib-pt", idx: i as 0 | 1 };
+      }
+    }
+    const mPts = measurePointsRef.current;
+    if (mPts.length >= 1) {
+      for (let i = 0; i < mPts.length; i++) {
+        if (distToPoint(imgPt, mPts[i]) < ptThresh) return { kind: "measure-pt", idx: i as 0 | 1 };
+      }
+    }
+    if (cPts.length === 2 && distToSegment(imgPt, cPts[0], cPts[1]) < lineThresh) {
+      return {
+        kind: "calib-line",
+        anchorOffset: [
+          { x: cPts[0].x - imgPt.x, y: cPts[0].y - imgPt.y },
+          { x: cPts[1].x - imgPt.x, y: cPts[1].y - imgPt.y },
+        ],
+      };
+    }
+    if (mPts.length === 2 && distToSegment(imgPt, mPts[0], mPts[1]) < lineThresh) {
+      return {
+        kind: "measure-line",
+        anchorOffset: [
+          { x: mPts[0].x - imgPt.x, y: mPts[0].y - imgPt.y },
+          { x: mPts[1].x - imgPt.x, y: mPts[1].y - imgPt.y },
+        ],
+      };
+    }
+    return null;
+  }, [distToPoint, distToSegment]);
+
+  // ── Recalculate measured distance from current points ──
+  const recalcMeasureDist = useCallback(() => {
+    const mPts = measurePointsRef.current;
+    if (mPts.length === 2 && calibrationRef.current) {
+      const dx = mPts[1].x - mPts[0].x;
+      const dy = mPts[1].y - mPts[0].y;
+      const realDist = Math.hypot(dx, dy) / calibrationRef.current.pixelsPerUnit;
+      measuredDistRef.current = realDist;
+      setMeasuredDistDisplay(realDist);
+    }
+  }, []);
+
+  // ── Delete handlers ──
+  const handleDeleteCalibration = useCallback(() => {
+    calibPointsRef.current = [];
+    setCalibPointCount(0);
+    calibrationRef.current = null;
+    setCalibration(null);
+    setShowCalibDialog(false);
+    measurePointsRef.current = [];
+    setMeasurePointCount(0);
+    measuredDistRef.current = null;
+    setMeasuredDistDisplay(null);
+    scheduleDraw();
+  }, [scheduleDraw]);
+
+  const handleDeleteMeasure = useCallback(() => {
+    measurePointsRef.current = [];
+    setMeasurePointCount(0);
+    measuredDistRef.current = null;
+    setMeasuredDistDisplay(null);
+    scheduleDraw();
+  }, [scheduleDraw]);
+
   // ── Mouse handlers ──
   const handleMouseDown = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement>) => {
@@ -404,6 +529,14 @@ export function MeasurementTool() {
       }
 
       const pt = canvasToImg(e.clientX, e.clientY);
+
+      // Check if clicking near an existing point or line for dragging
+      const hit = hitTest(pt);
+      if (hit) {
+        dragTargetRef.current = hit;
+        dragAnchorImgRef.current = pt;
+        return;
+      }
 
       if (tool === "calibrate") {
         const cPts = calibPointsRef.current;
@@ -433,23 +566,89 @@ export function MeasurementTool() {
         }
       }
     },
-    [tool, canvasToImg, scheduleDraw],
+    [tool, canvasToImg, scheduleDraw, hitTest],
   );
 
   const handleMouseMove = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement>) => {
-      if (!draggingRef.current) return;
-      const rawOff: Point = {
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
-      };
-      offsetRef.current = applyElastic(rawOff);
-      scheduleDraw();
+      // Dragging a point or line?
+      const dt = dragTargetRef.current;
+      if (dt) {
+        const pt = canvasToImg(e.clientX, e.clientY);
+        if (dt.kind === "calib-pt") {
+          calibPointsRef.current[dt.idx] = pt;
+          if (calibrationRef.current && calibPointsRef.current.length === 2) {
+            const cPts = calibPointsRef.current;
+            const pixelDist = Math.hypot(cPts[1].x - cPts[0].x, cPts[1].y - cPts[0].y);
+            calibrationRef.current = {
+              ...calibrationRef.current,
+              p1: cPts[0], p2: cPts[1],
+              pixelsPerUnit: pixelDist / calibrationRef.current.realValue,
+            };
+            setCalibration({ ...calibrationRef.current });
+            recalcMeasureDist();
+          }
+        } else if (dt.kind === "measure-pt") {
+          measurePointsRef.current[dt.idx] = pt;
+          recalcMeasureDist();
+        } else if (dt.kind === "calib-line") {
+          calibPointsRef.current = [
+            { x: pt.x + dt.anchorOffset[0].x, y: pt.y + dt.anchorOffset[0].y },
+            { x: pt.x + dt.anchorOffset[1].x, y: pt.y + dt.anchorOffset[1].y },
+          ];
+          if (calibrationRef.current) {
+            const cPts = calibPointsRef.current;
+            calibrationRef.current = {
+              ...calibrationRef.current,
+              p1: cPts[0], p2: cPts[1],
+            };
+            setCalibration({ ...calibrationRef.current });
+          }
+        } else if (dt.kind === "measure-line") {
+          measurePointsRef.current = [
+            { x: pt.x + dt.anchorOffset[0].x, y: pt.y + dt.anchorOffset[0].y },
+            { x: pt.x + dt.anchorOffset[1].x, y: pt.y + dt.anchorOffset[1].y },
+          ];
+          recalcMeasureDist();
+        }
+        scheduleDraw();
+        return;
+      }
+
+      // Pan dragging
+      if (draggingRef.current) {
+        const rawOff: Point = {
+          x: e.clientX - dragStartRef.current.x,
+          y: e.clientY - dragStartRef.current.y,
+        };
+        offsetRef.current = applyElastic(rawOff);
+        scheduleDraw();
+        return;
+      }
+
+      // Hover cursor detection (only in calibrate/measure mode)
+      if (tool === "calibrate" || tool === "measure") {
+        const pt = canvasToImg(e.clientX, e.clientY);
+        const hit = hitTest(pt);
+        if (hit) {
+          if (hit.kind.endsWith("-pt")) {
+            setCanvasCursor("grab");
+          } else {
+            setCanvasCursor("move");
+          }
+        } else {
+          setCanvasCursor("crosshair");
+        }
+      }
     },
-    [applyElastic, scheduleDraw],
+    [applyElastic, scheduleDraw, canvasToImg, hitTest, tool, recalcMeasureDist],
   );
 
   const handleMouseUp = useCallback(() => {
+    if (dragTargetRef.current) {
+      dragTargetRef.current = null;
+      return;
+    }
     if (draggingRef.current) {
       draggingRef.current = false;
       snapBack();
@@ -507,10 +706,27 @@ export function MeasurementTool() {
         e.preventDefault();
         handleResetView();
       }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        if (tool === "measure" && measurePointsRef.current.length > 0) {
+          handleDeleteMeasure();
+        } else if (tool === "calibrate" && calibPointsRef.current.length > 0) {
+          handleDeleteCalibration();
+        } else if (measurePointsRef.current.length > 0) {
+          handleDeleteMeasure();
+        } else if (calibPointsRef.current.length > 0) {
+          handleDeleteCalibration();
+        }
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (measurePointsRef.current.length > 0) handleDeleteMeasure();
+        else if (calibPointsRef.current.length > 0) handleDeleteCalibration();
+      }
     };
     globalThis.addEventListener("keydown", onKey);
     return () => globalThis.removeEventListener("keydown", onKey);
-  }, [handleResetView]);
+  }, [handleResetView, handleDeleteCalibration, handleDeleteMeasure, tool]);
 
   // ── Minimap click/drag navigation ──
   const minimapNavigate = useCallback(
@@ -749,9 +965,9 @@ export function MeasurementTool() {
       return { icon: "info", step: "Step 2 of 3", text: "Click the second endpoint to complete the measurement." };
     }
     if (!selectedTask) {
-      return { icon: "arrow", step: "Step 3 of 3", text: `Measured ${toArchitecturalString(measuredDistDisplay)}. Now select a task from the sidebar and click "Assign" to save it.` };
+      return { icon: "arrow", step: "Step 3 of 3", text: `Measured ${toArchitecturalString(measuredDistDisplay)}. Drag endpoints to fine-tune. Select a task and click "Assign" to save.` };
     }
-    return { icon: "check", step: "Step 3 of 3", text: `Measured ${toArchitecturalString(measuredDistDisplay)}. Click "Assign" on the selected task to save, or re-measure by clicking two new points.` };
+    return { icon: "check", step: "Step 3 of 3", text: `Measured ${toArchitecturalString(measuredDistDisplay)}. Click "Assign" to save. Drag endpoints to adjust, or press Delete to clear.` };
   }, [calibration, tool, showCalibDialog, calibPointCount, measurePointCount, measuredDistDisplay, selectedTask]);
 
   // ── Derived display state ──
@@ -825,6 +1041,27 @@ export function MeasurementTool() {
         <button title="Re-render in HD (higher quality, takes longer)" onClick={handleReRenderHD} className="rounded p-2 hover:bg-muted">
           <MonitorUp size={18} />
         </button>
+        {(calibPointCount > 0 || calibration) && (
+          <>
+            <div className="my-1 w-6 border-t border-border" />
+            <button
+              title="Delete calibration line (Delete)"
+              onClick={handleDeleteCalibration}
+              className="rounded p-2 text-orange-500 hover:bg-orange-50 hover:text-orange-700 transition-colors"
+            >
+              <Trash2 size={18} />
+            </button>
+          </>
+        )}
+        {measurePointCount > 0 && (
+          <button
+            title="Delete measurement line (Delete)"
+            onClick={handleDeleteMeasure}
+            className="rounded p-2 text-blue-500 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* ── Canvas area ── */}
@@ -882,18 +1119,58 @@ export function MeasurementTool() {
         ) : (
           <canvas
             ref={canvasRef}
-            className={cn(
-              "h-full w-full",
-              tool === "pan" && "cursor-grab",
-              tool === "calibrate" && "cursor-crosshair",
-              tool === "measure" && "cursor-crosshair",
-            )}
+            className="h-full w-full"
+            style={{
+              cursor: (() => {
+                if (tool === "pan") return "grab";
+                if (tool === "calibrate" || tool === "measure") return canvasCursor;
+                return "default";
+              })(),
+            }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           />
         )}
+
+        {/* Floating delete buttons near lines */}
+        {!isLoading && (calibPointCount >= 2 || calibration != null) && calibPointsRef.current.length === 2 && (() => {
+          const z = zoomRef.current;
+          const off = offsetRef.current;
+          const cPts = calibPointsRef.current;
+          const sx = (cPts[0].x * z + off.x + cPts[1].x * z + off.x) / 2;
+          const sy = Math.min(cPts[0].y * z + off.y, cPts[1].y * z + off.y) - 28;
+          return (
+            <button
+              type="button"
+              className="absolute z-30 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white shadow-md hover:bg-orange-600 transition-colors"
+              style={{ left: sx - 10, top: sy }}
+              title="Delete calibration line"
+              onClick={handleDeleteCalibration}
+            >
+              <X size={12} />
+            </button>
+          );
+        })()}
+        {!isLoading && measurePointCount >= 2 && measurePointsRef.current.length === 2 && (() => {
+          const z = zoomRef.current;
+          const off = offsetRef.current;
+          const mPts = measurePointsRef.current;
+          const sx = (mPts[0].x * z + off.x + mPts[1].x * z + off.x) / 2;
+          const sy = Math.min(mPts[0].y * z + off.y, mPts[1].y * z + off.y) - 28;
+          return (
+            <button
+              type="button"
+              className="absolute z-30 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white shadow-md hover:bg-blue-600 transition-colors"
+              style={{ left: sx - 10, top: sy }}
+              title="Delete measurement line"
+              onClick={handleDeleteMeasure}
+            >
+              <X size={12} />
+            </button>
+          );
+        })()}
 
         {/* Calibration dialog (draggable) */}
         {showCalibDialog && (
@@ -1189,6 +1466,9 @@ export function MeasurementTool() {
             <ul className="space-y-0.5 text-[10px] text-muted-foreground">
               <li>Use <strong>scroll wheel</strong> to zoom in/out</li>
               <li>Zoom in close before clicking for better accuracy</li>
+              <li><strong>Drag endpoints</strong> to adjust lines after placing them</li>
+              <li><strong>Drag the line</strong> to move both points together</li>
+              <li>Press <strong>Delete</strong> or <strong>Esc</strong> to remove a line</li>
               <li>Press <strong>R</strong> to reset the view</li>
               <li>You can skip tasks that don't apply to this page</li>
             </ul>

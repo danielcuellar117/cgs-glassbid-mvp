@@ -1,8 +1,8 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useJobSsot } from "@/api/hooks/useJobs";
 import { PageThumbnail } from "@/components/shared/PageThumbnail";
 import { StatusBadge } from "@/components/shared/StatusBadge";
-import { Loader2 } from "lucide-react";
+import { Loader2, FileText } from "lucide-react";
 import { useMemo } from "react";
 
 interface PageEntry {
@@ -37,13 +37,25 @@ export function PageIndex() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Page Index</h1>
         <p className="text-sm text-muted-foreground">
-          {pages.length} pages indexed. Click a page to view details.
+          {pages.length > 0
+            ? `${pages.length} pages found. Click a page to open the measurement tool.`
+            : "Waiting for the pipeline to finish scanning your PDF."}
         </p>
       </div>
 
       {pages.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-muted-foreground">No pages indexed yet. The pipeline may still be processing.</p>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+          <FileText size={32} className="mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No pages indexed yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Pages will appear here once the AI finishes scanning your PDF.
+          </p>
+          <Link
+            to={`/jobs/${id}`}
+            className="mt-4 text-sm font-medium text-primary hover:underline"
+          >
+            Check Pipeline Status &rarr;
+          </Link>
         </div>
       ) : (
         <div className="grid gap-4 grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">

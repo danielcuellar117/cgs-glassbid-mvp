@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderPlus,
@@ -11,9 +11,14 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  GitBranch,
+  ScanSearch,
+  ClipboardCheck,
+  DollarSign,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const operatorLinks = [
@@ -33,8 +38,26 @@ const adminLinks = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   const isAdmin = user?.role === "ADMIN";
+
+  // Detect if we're inside a job route
+  const jobId = useMemo(() => {
+    const match = location.pathname.match(/^\/jobs\/([0-9a-f-]{36})/i);
+    return match ? match[1] : null;
+  }, [location.pathname]);
+
+  const jobLinks = useMemo(() => {
+    if (!jobId) return [];
+    return [
+      { to: `/jobs/${jobId}`, icon: GitBranch, label: "Pipeline Status" },
+      { to: `/jobs/${jobId}/pages`, icon: ScanSearch, label: "Pages" },
+      { to: `/jobs/${jobId}/review`, icon: ClipboardCheck, label: "Review & Measure" },
+      { to: `/jobs/${jobId}/pricing`, icon: DollarSign, label: "Pricing" },
+      { to: `/jobs/${jobId}/results`, icon: Download, label: "Results" },
+    ];
+  }, [jobId]);
 
   return (
     <aside
@@ -56,12 +79,23 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* Operator section */}
-      <nav className="flex-1 space-y-1 px-2 py-3">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-3">
         <SectionLabel collapsed={collapsed}>Operator</SectionLabel>
         {operatorLinks.map((link) => (
           <SidebarLink key={link.to} {...link} collapsed={collapsed} />
         ))}
+
+        {/* Contextual job navigation */}
+        {jobId && (
+          <>
+            <div className="my-3 border-t border-sidebar-border" />
+            <SectionLabel collapsed={collapsed}>Current Job</SectionLabel>
+            {jobLinks.map((link) => (
+              <SidebarLink key={link.to} {...link} collapsed={collapsed} />
+            ))}
+          </>
+        )}
 
         {isAdmin && (
           <>
@@ -140,7 +174,7 @@ function SidebarLink({
   return (
     <NavLink
       to={to}
-      end={to === "/" || to === "/admin"}
+      end={to === "/" || to === "/admin" || /^\/jobs\/[^/]+$/.test(to)}
       className={({ isActive }) =>
         cn(
           "flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors",
@@ -150,6 +184,7 @@ function SidebarLink({
           collapsed && "justify-center",
         )
       }
+      title={collapsed ? label : undefined}
     >
       <Icon size={18} />
       {!collapsed && <span>{label}</span>}

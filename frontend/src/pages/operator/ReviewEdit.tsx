@@ -158,6 +158,11 @@ export function ReviewEdit() {
   );
 
   const handleSubmitForPricing = useCallback(async () => {
+    const confirmed = globalThis.confirm(
+      "This will lock the extracted items and calculate pricing based on your pricebook rules. Make sure all measurements are complete.\n\nContinue?",
+    );
+    if (!confirmed) return;
+
     await submitReview.mutateAsync(id!);
     navigate(`/jobs/${id}/pricing`);
   }, [id, submitReview, navigate]);
@@ -287,23 +292,45 @@ export function ReviewEdit() {
       )}
 
       {items.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <p className="text-muted-foreground">
-            No items extracted yet. The pipeline may still be processing.
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+          <p className="text-muted-foreground">No items extracted yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Glass items will appear here once the AI finishes extracting data from your drawings.
           </p>
+          <Link
+            to={`/jobs/${id}`}
+            className="mt-4 text-sm font-medium text-primary hover:underline"
+          >
+            Check Pipeline Status &rarr;
+          </Link>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border bg-card">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/50">
-                {["#", "Category", "Location", "Configuration", "W", "H", "D", "Glass", "Hardware", "Qty", "Confidence", "Flags", ""].map(
+                {([
+                  { label: "#", tooltip: "" },
+                  { label: "Category", tooltip: "Type of glass element (e.g., Window, Door, Curtain Wall)" },
+                  { label: "Location", tooltip: "Where this item is located in the building" },
+                  { label: "Configuration", tooltip: "Style or configuration of the glass element" },
+                  { label: "W", tooltip: "Width in inches — click a cell to edit manually" },
+                  { label: "H", tooltip: "Height in inches — click a cell to edit manually" },
+                  { label: "D", tooltip: "Depth in inches — click a cell to edit manually" },
+                  { label: "Glass", tooltip: "Type of glass specified (e.g., tempered, laminated)" },
+                  { label: "Hardware", tooltip: "Hardware components (hinges, handles, etc.)" },
+                  { label: "Qty", tooltip: "Quantity of this item" },
+                  { label: "Confidence", tooltip: "How confident the AI is about this extraction. Below 70% should be manually verified." },
+                  { label: "Flags", tooltip: "Items flagged for review or field verification" },
+                  { label: "", tooltip: "" },
+                ] as const).map(
                   (h) => (
                     <th
-                      key={h}
-                      className="px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground"
+                      key={h.label}
+                      title={h.tooltip || undefined}
+                      className={`px-3 py-2.5 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground ${h.tooltip ? "cursor-help" : ""}`}
                     >
-                      {h}
+                      {h.label}
                     </th>
                   ),
                 )}

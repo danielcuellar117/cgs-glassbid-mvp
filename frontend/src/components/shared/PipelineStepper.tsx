@@ -1,29 +1,33 @@
 import { cn } from "@/lib/utils";
-import { PIPELINE_STEPS, type JobState } from "@/lib/constants";
+import { PIPELINE_STEPS, STEP_LABELS, STEP_DESCRIPTIONS, type JobState } from "@/lib/constants";
 import { Check, Loader2, X } from "lucide-react";
 
 interface PipelineStepperProps {
-  currentStatus: string;
-  className?: string;
+  readonly currentStatus: string;
+  readonly className?: string;
 }
 
 export function PipelineStepper({ currentStatus, className }: PipelineStepperProps) {
   const currentIdx = PIPELINE_STEPS.indexOf(currentStatus as JobState);
   const isFailed = currentStatus === "FAILED";
+  const isDone = currentStatus === "DONE";
 
   return (
     <div className={cn("flex items-center gap-1 overflow-x-auto pb-2", className)}>
       {PIPELINE_STEPS.map((step, i) => {
-        const isCompleted = !isFailed && currentIdx > i;
-        const isCurrent = currentIdx === i;
+        const isCompleted = !isFailed && (isDone || currentIdx > i);
+        const isCurrent = currentIdx === i && !isDone;
         const isActive = isCurrent && !isFailed;
+        const label = STEP_LABELS[step] ?? step.replaceAll("_", " ");
+        const tooltip = STEP_DESCRIPTIONS[step] ?? "";
 
         return (
-          <div key={step} className="flex items-center gap-1">
+          <div key={step} className="flex items-center gap-1 group relative">
             {/* Step circle */}
             <div
+              title={tooltip}
               className={cn(
-                "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-all shrink-0",
+                "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-all shrink-0 cursor-help",
                 isCompleted && "bg-green-500 text-white",
                 isActive && "bg-primary text-primary-foreground animate-pulse",
                 isFailed && isCurrent && "bg-red-500 text-white",
@@ -43,15 +47,16 @@ export function PipelineStepper({ currentStatus, className }: PipelineStepperPro
 
             {/* Label */}
             <span
+              title={tooltip}
               className={cn(
-                "text-[11px] whitespace-nowrap",
+                "text-[11px] whitespace-nowrap cursor-help",
                 isCompleted && "text-green-700 font-medium",
                 isActive && "text-foreground font-semibold",
                 isFailed && isCurrent && "text-red-700 font-semibold",
                 !isCompleted && !isCurrent && "text-muted-foreground",
               )}
             >
-              {step.replace(/_/g, " ")}
+              {label}
             </span>
 
             {/* Connector line */}

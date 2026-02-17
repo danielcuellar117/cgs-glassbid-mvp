@@ -2,13 +2,31 @@ import { useNavigate, Link } from "react-router-dom";
 import { useProjects } from "@/api/hooks/useProjects";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatDate } from "@/lib/utils";
-import { Plus, FolderOpen, Loader2, Search } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Plus, FolderOpen, Loader2, Search, X, Upload, ScanSearch, ClipboardCheck, DollarSign, FileDown } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+
+const WELCOME_DISMISSED_KEY = "glassbid_welcome_dismissed";
+
+const WORKFLOW_STEPS = [
+  { icon: Upload, label: "Upload", desc: "Upload your architectural PDF drawings" },
+  { icon: ScanSearch, label: "Extract", desc: "AI automatically finds glass items, dimensions & specs" },
+  { icon: ClipboardCheck, label: "Review", desc: "Verify extracted data and measure any missing dimensions" },
+  { icon: DollarSign, label: "Price", desc: "System calculates pricing using your pricebook rules" },
+  { icon: FileDown, label: "Download", desc: "Get your Bid Proposal and Shop Drawings PDFs" },
+];
 
 export function Dashboard() {
   const { data: projects, isLoading, error } = useProjects();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [showWelcome, setShowWelcome] = useState(
+    () => localStorage.getItem(WELCOME_DISMISSED_KEY) !== "true",
+  );
+
+  const dismissWelcome = useCallback(() => {
+    setShowWelcome(false);
+    localStorage.setItem(WELCOME_DISMISSED_KEY, "true");
+  }, []);
 
   const filtered = useMemo(() => {
     if (!projects) return [];
@@ -41,6 +59,52 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Welcome banner */}
+      {showWelcome && (
+        <div className="relative rounded-lg border border-primary/20 bg-primary/5 p-5">
+          <button
+            onClick={dismissWelcome}
+            className="absolute right-3 top-3 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            aria-label="Dismiss"
+          >
+            <X size={16} />
+          </button>
+          <h2 className="text-lg font-semibold text-foreground">Welcome to GlassBid!</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Here's how the system works in 5 simple steps:
+          </p>
+          <div className="mt-4 grid grid-cols-5 gap-3">
+            {WORKFLOW_STEPS.map((step, i) => (
+              <div key={step.label} className="flex flex-col items-center text-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <step.icon size={20} />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-foreground">
+                    {i + 1}. {step.label}
+                  </span>
+                  <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">{step.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <Link
+              to="/projects/new"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90"
+            >
+              <Plus size={16} /> Get Started &mdash; New Project
+            </Link>
+            <button
+              onClick={dismissWelcome}
+              className="text-xs text-muted-foreground hover:text-foreground underline"
+            >
+              Got it, don't show again
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

@@ -95,6 +95,18 @@ async function authPlugin(app: FastifyInstance) {
     const url = req.url.split("?")[0];
     if (isPublicRoute(url)) return;
     if (!url.startsWith("/api/")) return;
+
+    // SSE & image endpoints: accept token via query param since EventSource
+    // and <img src=""> don't support custom headers (Authorization: Bearer)
+    if (url.startsWith("/api/sse/") || url.endsWith("/image")) {
+      const token =
+        (req.query as Record<string, string>).token ||
+        req.headers.authorization?.replace("Bearer ", "");
+      if (token) {
+        req.headers.authorization = `Bearer ${token}`;
+      }
+    }
+
     await app.authenticate(req, reply);
   });
 }

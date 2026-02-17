@@ -8,6 +8,8 @@ import {
   UserCheck,
   UserX,
   AlertCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -203,6 +205,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     password: "",
   });
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const createMutation = useMutation({
     mutationFn: () =>
@@ -301,15 +304,26 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
                 (optional if using Google)
               </span>
             </label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData((f) => ({ ...f, password: e.target.value }))
-              }
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
-              placeholder="Temporary password"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData((f) => ({ ...f, password: e.target.value }))
+                }
+                className="w-full rounded-md border border-input bg-background px-3 pr-10 py-2 text-sm focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Temporary password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

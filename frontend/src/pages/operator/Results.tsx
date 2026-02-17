@@ -1,10 +1,16 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useJobSsot } from "@/api/hooks/useJobs";
 import { Loader2, Download, FileText, RefreshCw, ExternalLink } from "lucide-react";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { api } from "@/api/client";
 import { API_BASE } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
+import { getAccessToken } from "@/contexts/AuthContext";
+
+function authHeaders(): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 interface OutputEntry {
   outputId: string;
@@ -51,32 +57,56 @@ export function Results() {
     return `${API_BASE}${url.startsWith("/api") ? url.replace("/api", "") : url}`;
   }, []);
 
-  const handleDownload = useCallback((output: OutputEntry) => {
+  const handleDownload = useCallback(async (output: OutputEntry) => {
     const url = downloadUrls[output.outputId];
-    if (url) {
+    if (!url) return;
+    try {
+      const res = await fetch(buildUrl(url), { headers: authHeaders() });
+      if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = buildUrl(url);
+      a.href = objectUrl;
       a.download = output.key.split("/").pop() || "download.pdf";
       document.body.appendChild(a);
       a.click();
       a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
     }
   }, [downloadUrls, buildUrl]);
 
-  const handlePreview = useCallback((output: OutputEntry) => {
+  const handlePreview = useCallback(async (output: OutputEntry) => {
     const url = downloadUrls[output.outputId];
-    if (url) {
-      globalThis.open(buildUrl(url), "_blank");
+    if (!url) return;
+    try {
+      const res = await fetch(buildUrl(url), { headers: authHeaders() });
+      if (!res.ok) throw new Error(`Preview failed: ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      globalThis.open(objectUrl, "_blank");
+    } catch (err) {
+      console.error("Preview failed:", err);
     }
   }, [downloadUrls, buildUrl]);
 
-  const handleDownloadZip = useCallback(() => {
-    const a = document.createElement("a");
-    a.href = `${API_BASE}/downloads/${id}/zip`;
-    a.download = `job-${id?.slice(0, 8)}-outputs.zip`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  const handleDownloadZip = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/downloads/${id}/zip`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`ZIP download failed: ${res.status}`);
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = objectUrl;
+      a.download = `job-${id?.slice(0, 8)}-outputs.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error("ZIP download failed:", err);
+    }
   }, [id]);
 
   const handleRegenerate = useCallback(async () => {
@@ -123,11 +153,18 @@ export function Results() {
       </div>
 
       {outputs.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border py-16 text-center">
-          <FileText size={32} className="mx-auto mb-2 text-muted-foreground" />
-          <p className="text-muted-foreground">
-            No outputs generated yet. Complete the pipeline to generate PDFs.
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+          <FileText size={32} className="mb-3 text-muted-foreground" />
+          <p className="text-muted-foreground">No outputs generated yet.</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Your Bid Proposal and Shop Drawings will appear here after pricing is complete and PDFs are generated.
           </p>
+          <Link
+            to={`/jobs/${id}`}
+            className="mt-4 text-sm font-medium text-primary hover:underline"
+          >
+            Check Pipeline Status &rarr;
+          </Link>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

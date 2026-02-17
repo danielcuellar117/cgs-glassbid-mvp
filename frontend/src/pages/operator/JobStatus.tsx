@@ -3,7 +3,9 @@ import { useJob, useDeleteJob } from "@/api/hooks/useJobs";
 import { PipelineStepper } from "@/components/shared/PipelineStepper";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { formatDate } from "@/lib/utils";
-import { Loader2, ArrowRight, RefreshCw, AlertTriangle, Trash2 } from "lucide-react";
+import { STEP_DESCRIPTIONS } from "@/lib/constants";
+import { getAccessToken } from "@/contexts/AuthContext";
+import { Loader2, ArrowRight, RefreshCw, AlertTriangle, Trash2, Info } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 function StageProgressDisplay({ stageProgress }: { stageProgress: Record<string, unknown> }) {
@@ -29,7 +31,11 @@ export function JobStatus() {
   // SSE connection for real-time updates
   useEffect(() => {
     if (!id) return;
-    const es = new EventSource(`/api/sse/jobs/${id}`);
+    const token = getAccessToken();
+    const sseUrl = token
+      ? `/api/sse/jobs/${id}?token=${encodeURIComponent(token)}`
+      : `/api/sse/jobs/${id}`;
+    const es = new EventSource(sseUrl);
     esRef.current = es;
 
     // Backend sends named events: "status" and "complete"
@@ -55,6 +61,7 @@ export function JobStatus() {
     });
 
     es.addEventListener("complete", () => {
+      setSseProgress(null);
       refetch();
       es.close();
     });
@@ -130,15 +137,23 @@ export function JobStatus() {
       <div className="rounded-lg border border-border bg-card p-6">
         <PipelineStepper currentStatus={status} />
 
-        {sseProgress && (
-          <div className="mt-4 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
+        {/* Contextual description for current step */}
+        {!isDone && !isFailed && STEP_DESCRIPTIONS[status] && (
+          <div className="mt-4 flex items-center gap-2 rounded-md bg-blue-50 border border-blue-100 px-3 py-2">
+            <Info size={14} className="shrink-0 text-blue-500" />
+            <p className="text-sm text-blue-800">{STEP_DESCRIPTIONS[status]}</p>
+          </div>
+        )}
+
+        {sseProgress && !isDone && !isFailed && (
+          <div className="mt-3 flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2">
             <Loader2 size={14} className="animate-spin text-primary" />
             <p className="text-sm font-medium text-foreground capitalize">{sseProgress}</p>
           </div>
         )}
 
         {/* Show stageProgress from job data as fallback */}
-        {!sseProgress && job.stageProgress != null && typeof job.stageProgress === "object" ? (
+        {!sseProgress && !isDone && !isFailed && job.stageProgress != null && typeof job.stageProgress === "object" ? (
           <StageProgressDisplay stageProgress={job.stageProgress as Record<string, unknown>} />
         ) : null}
       </div>
@@ -171,9 +186,13 @@ export function JobStatus() {
 
       {needsReview && (
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-6">
-          <h3 className="font-semibold text-orange-900">Review Required</h3>
+          <h3 className="font-semibold text-orange-900">Your Review is Needed</h3>
           <p className="mt-1 text-sm text-orange-700">
-            Items have been extracted. Please review and complete any measurement tasks.
+            We found glass items in your drawings! Some dimensions couldn't be read automatically
+            &mdash; you'll need to measure them manually using our built-in measurement tool.
+          </p>
+          <p className="mt-2 text-xs text-orange-600">
+            Start by clicking <strong>Review Items</strong> to see what was extracted and what needs measuring.
           </p>
           <div className="mt-4 flex gap-3">
             <button
@@ -196,7 +215,7 @@ export function JobStatus() {
         <div className="rounded-lg border border-green-200 bg-green-50 p-6">
           <h3 className="font-semibold text-green-900">Pipeline Complete!</h3>
           <p className="mt-1 text-sm text-green-700">
-            PDFs have been generated and are ready for download.
+            Your documents are ready. You can download the <strong>Bid Proposal</strong> (formal quote for the client) and <strong>Shop Drawings</strong> (fabrication specs for the shop).
           </p>
           <button
             onClick={() => navigate(`/jobs/${id}/results`)}
