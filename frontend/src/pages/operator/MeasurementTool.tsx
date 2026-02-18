@@ -175,7 +175,7 @@ export function MeasurementTool() {
   const nextPendingTask = useMemo(() => {
     const onThisPage = allPendingTasks.find((t) => t.pageNum === pageNum);
     if (onThisPage) return onThisPage;
-    return allPendingTasks.toSorted((a, b) => a.pageNum - b.pageNum)[0] ?? null;
+    return [...allPendingTasks].sort((a, b) => a.pageNum - b.pageNum)[0] ?? null;
   }, [allPendingTasks, pageNum]);
 
   // Other jobs in the same project that are in NEEDS_REVIEW
