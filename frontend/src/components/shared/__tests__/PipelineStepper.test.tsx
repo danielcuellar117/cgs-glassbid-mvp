@@ -1,18 +1,19 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PipelineStepper } from "../PipelineStepper";
+import { PIPELINE_STEPS } from "@/lib/constants";
 
 describe("PipelineStepper", () => {
-  it("renders all pipeline steps", () => {
+  it("renders all pipeline steps with human-friendly labels", () => {
     render(<PipelineStepper currentStatus="CREATED" />);
-    expect(screen.getByText("CREATED")).toBeInTheDocument();
-    expect(screen.getByText("UPLOADING")).toBeInTheDocument();
-    expect(screen.getByText("DONE")).toBeInTheDocument();
+    expect(screen.getByText("Created")).toBeInTheDocument();
+    expect(screen.getByText("Uploading")).toBeInTheDocument();
+    expect(screen.getByText("Complete")).toBeInTheDocument();
   });
 
   it("marks completed steps with check icon", () => {
     const { container } = render(<PipelineStepper currentStatus="EXTRACTING" />);
-    // Steps before EXTRACTING (CREATED, UPLOADING, UPLOADED, INDEXING, ROUTING) should be green
+    // Steps before EXTRACTING: CREATED, UPLOADING, UPLOADED, INDEXING, ROUTING = 5
     const greenCircles = container.querySelectorAll(".bg-green-500");
     expect(greenCircles.length).toBe(5);
   });
@@ -25,17 +26,14 @@ describe("PipelineStepper", () => {
 
   it("handles FAILED status with red styling", () => {
     const { container } = render(<PipelineStepper currentStatus="FAILED" />);
-    // FAILED is not in PIPELINE_STEPS, so currentIdx will be -1
-    // No steps should be completed since isFailed is true
     const greenCircles = container.querySelectorAll(".bg-green-500");
     expect(greenCircles.length).toBe(0);
   });
 
   it("shows DONE state with all steps completed", () => {
     const { container } = render(<PipelineStepper currentStatus="DONE" />);
-    // All steps before DONE should be green
     const greenCircles = container.querySelectorAll(".bg-green-500");
-    expect(greenCircles.length).toBe(9); // 9 steps before DONE
+    expect(greenCircles.length).toBe(PIPELINE_STEPS.length);
   });
 
   it("applies custom className", () => {

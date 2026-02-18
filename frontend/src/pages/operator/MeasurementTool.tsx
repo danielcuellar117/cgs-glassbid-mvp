@@ -1,8 +1,9 @@
-import { useParams } from "react-router-dom";
-import { useMeasurementTasks, useCompleteMeasurementTask, useSkipMeasurementTask, useBulkSkipMeasurementTasks } from "@/api/hooks/useMeasurementTasks";
+import { useParams, useNavigate } from "react-router-dom";
+import { useMeasurementTasks, useCompleteMeasurementTask, useSkipMeasurementTask, useBulkSkipMeasurementTasks, useSubmitReview } from "@/api/hooks/useMeasurementTasks";
 import { useCreateRenderRequest, useRenderRequest } from "@/api/hooks/useRenderRequests";
+import { useJob, useJobs } from "@/api/hooks/useJobs";
 import { SkipReasonDialog } from "@/components/shared/SkipReasonDialog";
-import { Loader2, ZoomIn, ZoomOut, Crosshair, Ruler, RotateCcw, MonitorUp, SkipForward, Ban, Info, CheckCircle2, ArrowRight, Move, Trash2, X } from "lucide-react";
+import { Loader2, ZoomIn, ZoomOut, Crosshair, Ruler, RotateCcw, MonitorUp, SkipForward, Ban, Info, CheckCircle2, ArrowRight, Move, Trash2, X, ChevronRight, SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   useRef,
@@ -141,8 +142,12 @@ export function MeasurementTool() {
   const [measurePointCount, setMeasurePointCount] = useState(0);
   const [canvasCursor, setCanvasCursor] = useState<string>("default");
 
+  const navigate = useNavigate();
   const { data: tasks } = useMeasurementTasks(jobId!);
+  const { data: jobData } = useJob(jobId!);
+  const { data: projectJobs } = useJobs(jobData?.projectId);
   const completeMeasurement = useCompleteMeasurementTask();
+  const submitReview = useSubmitReview();
   const skipTask = useSkipMeasurementTask();
   const bulkSkip = useBulkSkipMeasurementTasks();
   const createRender = useCreateRenderRequest();
@@ -150,6 +155,7 @@ export function MeasurementTool() {
   const renderReq = useRenderRequest(renderId ?? "");
   const [skipDialogTarget, setSkipDialogTarget] = useState<"single" | "page" | null>(null);
   const [skipTaskId, setSkipTaskId] = useState<string | null>(null);
+  const [justAssigned, setJustAssigned] = useState<string | null>(null);
 
   const pageTasks = useMemo(
     () => (tasks ?? []).filter((t) => t.pageNum === pageNum),
@@ -160,9 +166,28 @@ export function MeasurementTool() {
     [pageTasks],
   );
 
+  const allPendingTasks = useMemo(
+    () => (tasks ?? []).filter((t) => t.status === "PENDING"),
+    [tasks],
+  );
+
+  // Next pending task in this job (prefer current page, then other pages)
+  const nextPendingTask = useMemo(() => {
+    const onThisPage = allPendingTasks.find((t) => t.pageNum === pageNum);
+    if (onThisPage) return onThisPage;
+    return allPendingTasks.toSorted((a, b) => a.pageNum - b.pageNum)[0] ?? null;
+  }, [allPendingTasks, pageNum]);
+
+  // Other jobs in the same project that are in NEEDS_REVIEW
+  const nextReviewJob = useMemo(() => {
+    if (!projectJobs || !jobId || allPendingTasks.length > 0) return null;
+    return projectJobs.find((j) => j.id !== jobId && j.status === "NEEDS_REVIEW") ?? null;
+  }, [projectJobs, jobId, allPendingTasks]);
+
   // ── Render request ──
   useEffect(() => {
     if (!jobId || renderId) return;
+    setJustAssigned(null);
     createRender.mutate(
       { jobId, pageNum, kind: "MEASURE", dpi: 200 },
       { onSuccess: (data) => setRenderId(data.id) },
@@ -980,6 +1005,7 @@ export function MeasurementTool() {
       measuredDistRef.current = null;
       setMeasuredDistDisplay(null);
       setSelectedTask(null);
+      setJustAssigned(taskId);
       scheduleDraw();
     },
     [completeMeasurement, scheduleDraw],
@@ -1326,8 +1352,8 @@ export function MeasurementTool() {
 
         {!isLoading && (
           <div
-            className="absolute bottom-8 right-3 z-10 rounded-lg border border-border/60 shadow-lg overflow-hidden bg-black/50 backdrop-blur-sm"
-            style={{ width: minimapSize.w, height: minimapSize.h }}
+            className="absolute right-3 z-10 rounded-lg border border-border/60 shadow-lg overflow-hidden bg-black/50 backdrop-blur-sm"
+            style={{ bottom: "calc(2rem + 50px)", width: minimapSize.w, height: minimapSize.h }}
           >
             <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between">
               <button
@@ -1422,7 +1448,7 @@ export function MeasurementTool() {
                 <button
                   type="button"
                   className="w-full text-left cursor-pointer"
-                  onClick={() => setSelectedTask(task.id)}
+                  onClick={() => { setSelectedTask(task.id); setJustAssigned(null); }}
                 >
                   <div className="flex justify-between">
                     <span className="font-medium">{task.dimensionKey}</span>
@@ -1464,6 +1490,72 @@ export function MeasurementTool() {
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Next task / Submit review panel ── */}
+        {justAssigned && (
+          <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-green-700 mb-2">
+              <CheckCircle2 size={14} />
+              Measurement saved!
+            </div>
+            {nextPendingTask ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setJustAssigned(null);
+                  if (nextPendingTask.pageNum !== pageNum) {
+                    navigate(`/jobs/${jobId}/measure/${nextPendingTask.pageNum}`);
+                  } else {
+                    setSelectedTask(nextPendingTask.id);
+                  }
+                }}
+                className="w-full flex items-center justify-between gap-2 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <span>
+                  Next task
+                  {nextPendingTask.pageNum !== pageNum && (
+                    <span className="ml-1 opacity-75">(Page {nextPendingTask.pageNum})</span>
+                  )}
+                </span>
+                <ChevronRight size={14} />
+              </button>
+            ) : nextReviewJob ? (
+              <div className="space-y-2">
+                <p className="text-[11px] text-green-600">All tasks done in this job!</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    submitReview.mutate(jobId!, {
+                      onSuccess: () => navigate(`/jobs/${nextReviewJob.id}/measure`),
+                    });
+                  }}
+                  disabled={submitReview.isPending}
+                  className="w-full flex items-center justify-between gap-2 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                >
+                  <span>Submit & go to next job</span>
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[11px] text-green-600">All tasks done in this job!</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    submitReview.mutate(jobId!, {
+                      onSuccess: () => navigate(`/jobs/${jobId}`),
+                    });
+                  }}
+                  disabled={submitReview.isPending}
+                  className="w-full flex items-center justify-between gap-2 rounded-md bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+                >
+                  <SendHorizonal size={14} />
+                  <span>Submit Review</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
