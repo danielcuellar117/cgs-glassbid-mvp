@@ -19,7 +19,9 @@ export function useRenderRequest(id: string) {
     queryKey: ["render-requests", id],
     queryFn: () => api.get<RenderRequest>(`/render-requests/${id}`),
     enabled: !!id,
+    retry: 1,
     refetchInterval: (query) => {
+      if (query.state.error) return false;
       const data = query.state.data;
       if (data && (data.status === "DONE" || data.status === "FAILED")) return false;
       return 2000;

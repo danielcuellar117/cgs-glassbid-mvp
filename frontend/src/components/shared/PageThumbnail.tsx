@@ -85,14 +85,14 @@ export function PageThumbnail({ jobId, pageNum, className, onClick }: PageThumbn
     }
   }, [renderRequest.isError, requestId, imageUrl]);
 
-  // Poll every 3s if still pending (longer interval to reduce load)
+  // Poll every 3s if still pending (stop on error/done/image ready)
   useEffect(() => {
-    if (!requestId || imageUrl || error) return;
+    if (!requestId || imageUrl || error || renderRequest.isError) return;
     const interval = setInterval(() => {
       renderRequest.refetch();
     }, 3000);
     return () => clearInterval(interval);
-  }, [requestId, imageUrl, error, renderRequest]);
+  }, [requestId, imageUrl, error, renderRequest.isError, renderRequest]);
 
   const handleClick = useCallback(() => {
     if (onClick) onClick();
