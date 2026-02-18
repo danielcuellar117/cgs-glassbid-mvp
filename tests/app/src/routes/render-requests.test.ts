@@ -81,6 +81,7 @@ describe("Render Request Routes", () => {
 
     it("should create new render request with default DPI for THUMB", async () => {
       mockPrisma.renderRequest.findFirst.mockResolvedValue(null);
+      mockPrisma.renderRequest.count.mockResolvedValue(0);
       mockPrisma.renderRequest.create.mockResolvedValue({
         id: "rr-new",
         jobId: "j1",
@@ -108,7 +109,66 @@ describe("Render Request Routes", () => {
       );
     });
 
-    it("should use 200 DPI default for MEASURE kind", async () => {
+    it("should evict oldest PENDING THUMBs when cap is reached", async () => {
+      mockPrisma.renderRequest.findFirst.mockResolvedValue(null);
+      mockPrisma.renderRequest.count.mockResolvedValue(20);
+      mockPrisma.renderRequest.findMany.mockResolvedValue([
+        { id: "old-1" },
+      ] as any);
+      mockPrisma.renderRequest.deleteMany.mockResolvedValue({ count: 1 });
+      mockPrisma.renderRequest.create.mockResolvedValue({
+        id: "rr-new",
+        jobId: "j1",
+        pageNum: 99,
+        kind: "THUMB",
+        dpi: 72,
+        status: "PENDING",
+      } as any);
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/render-requests",
+        payload: { jobId: "j1", pageNum: 99, kind: "THUMB" },
+        headers: authHeader(token),
+      });
+
+      expect(res.statusCode).toBe(201);
+      expect(mockPrisma.renderRequest.count).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { jobId: "j1", kind: "THUMB", status: "PENDING" },
+        }),
+      );
+      expect(mockPrisma.renderRequest.deleteMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ["old-1"] } },
+        }),
+      );
+    });
+
+    it("should not evict when PENDING THUMB count is under cap", async () => {
+      mockPrisma.renderRequest.findFirst.mockResolvedValue(null);
+      mockPrisma.renderRequest.count.mockResolvedValue(5);
+      mockPrisma.renderRequest.create.mockResolvedValue({
+        id: "rr-new",
+        jobId: "j1",
+        pageNum: 6,
+        kind: "THUMB",
+        dpi: 72,
+        status: "PENDING",
+      } as any);
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/api/render-requests",
+        payload: { jobId: "j1", pageNum: 6, kind: "THUMB" },
+        headers: authHeader(token),
+      });
+
+      expect(res.statusCode).toBe(201);
+      expect(mockPrisma.renderRequest.deleteMany).not.toHaveBeenCalled();
+    });
+
+    it("should not run THUMB cap logic for MEASURE kind", async () => {
       mockPrisma.renderRequest.findFirst.mockResolvedValue(null);
       mockPrisma.renderRequest.create.mockResolvedValue({
         id: "rr-m",
@@ -123,6 +183,7 @@ describe("Render Request Routes", () => {
         headers: authHeader(token),
       });
 
+      expect(mockPrisma.renderRequest.count).not.toHaveBeenCalled();
       expect(mockPrisma.renderRequest.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ dpi: 200 }),
