@@ -251,7 +251,9 @@ def main_loop() -> None:
     Also runs daily cleanup every 24 hours.
     """
     last_cleanup = 0.0  # epoch
+    last_render_cleanup = 0.0
     CLEANUP_INTERVAL = 24 * 60 * 60  # 24 hours
+    RENDER_CLEANUP_INTERVAL = 60  # every 60 seconds
 
     while not _shutdown:
         try:
@@ -271,6 +273,22 @@ def main_loop() -> None:
                 logger.warning("Skipping poll cycle due to disk pressure")
                 time.sleep(config.POLL_INTERVAL_SECONDS * 5)
                 continue
+
+            # ─── Render queue cleanup (periodic) ─────────────────────
+            now = time.time()
+            if now - last_render_cleanup > RENDER_CLEANUP_INTERVAL:
+                try:
+                    expired = db.expire_stale_thumb_requests(max_age_minutes=15)
+                    capped = db.cap_pending_thumbs_per_job(max_pending=20)
+                    if expired or capped:
+                        logger.info(
+                            "RENDER_QUEUE_CLEANUP",
+                            expired_thumbs=expired,
+                            capped_thumbs=capped,
+                        )
+                    last_render_cleanup = now
+                except Exception as e:
+                    logger.error("Render queue cleanup error", error=str(e))
 
             # ─── Loop A: Render requests (high priority) ─────────────
             render_processed = False

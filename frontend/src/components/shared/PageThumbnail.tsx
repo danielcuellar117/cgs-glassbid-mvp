@@ -76,6 +76,15 @@ export function PageThumbnail({ jobId, pageNum, className, onClick }: PageThumbn
     }
   }, [renderRequest.data, requestId, imageUrl]);
 
+  // If the render request was deleted (expired/cleaned up), allow re-request
+  useEffect(() => {
+    if (!requestId || imageUrl) return;
+    if (renderRequest.isError) {
+      setRequestId(null);
+      requested.current = false;
+    }
+  }, [renderRequest.isError, requestId, imageUrl]);
+
   // Poll every 3s if still pending (longer interval to reduce load)
   useEffect(() => {
     if (!requestId || imageUrl || error) return;

@@ -10,8 +10,14 @@ export class ApiError extends Error {
   }
 }
 
-let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
+
+async function ensureFreshToken(): Promise<string | null> {
+  refreshPromise ??= refreshAccessToken().finally(() => {
+    refreshPromise = null;
+  });
+  return refreshPromise;
+}
 
 async function request<T>(
   path: string,
@@ -34,16 +40,8 @@ async function request<T>(
     credentials: "include",
   });
 
-  // On 401, try to refresh the access token once
   if (res.status === 401 && !path.startsWith("/auth/")) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-      refreshPromise = refreshAccessToken();
-    }
-
-    const newToken = await refreshPromise;
-    isRefreshing = false;
-    refreshPromise = null;
+    const newToken = await ensureFreshToken();
 
     if (newToken) {
       headers["Authorization"] = `Bearer ${newToken}`;
@@ -53,8 +51,7 @@ async function request<T>(
         credentials: "include",
       });
     } else {
-      // Redirect to login
-      window.location.href = "/login";
+      globalThis.location.href = "/login";
       throw new ApiError(401, "Session expired");
     }
   }

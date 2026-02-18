@@ -36,6 +36,27 @@ interface AuthContextValue extends AuthState {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 let _accessToken: string | null = null;
+let _refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function getTokenExp(token: string): number | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+function scheduleProactiveRefresh(token: string) {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  const exp = getTokenExp(token);
+  if (!exp) return;
+  const msUntilExpiry = exp * 1000 - Date.now();
+  const refreshIn = Math.max(msUntilExpiry - 60_000, 5_000);
+  _refreshTimer = setTimeout(() => {
+    refreshAccessToken();
+  }, refreshIn);
+}
 
 /** Used by the API client to attach the Bearer token */
 export function getAccessToken(): string | null {
@@ -55,6 +76,7 @@ export async function refreshAccessToken(): Promise<string | null> {
     }
     const data = await res.json();
     _accessToken = data.accessToken;
+    scheduleProactiveRefresh(data.accessToken);
     return _accessToken;
   } catch {
     _accessToken = null;
@@ -88,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         const data = await res.json();
         _accessToken = data.accessToken;
+        scheduleProactiveRefresh(data.accessToken);
         if (!cancelled) {
           setState({
             user: data.user,
@@ -105,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
     return () => {
       cancelled = true;
+      if (_refreshTimer) clearTimeout(_refreshTimer);
     };
   }, []);
 
@@ -122,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || "Login failed");
       }
       _accessToken = data.accessToken;
+      scheduleProactiveRefresh(data.accessToken);
       setState({
         user: data.user,
         token: data.accessToken,
@@ -153,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || "Google login failed");
       }
       _accessToken = data.accessToken;
+      scheduleProactiveRefresh(data.accessToken);
       setState({
         user: data.user,
         token: data.accessToken,
@@ -184,6 +210,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error(data.error || "Google login failed");
       }
       _accessToken = data.accessToken;
+      scheduleProactiveRefresh(data.accessToken);
       setState({
         user: data.user,
         token: data.accessToken,
@@ -211,6 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     _accessToken = null;
+    if (_refreshTimer) clearTimeout(_refreshTimer);
     setState({ user: null, token: null, isLoading: false, error: null });
   }, []);
 

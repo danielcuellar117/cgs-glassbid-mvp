@@ -86,7 +86,7 @@ def claim_main_job(worker_id: str) -> Optional[dict]:
 
 
 def claim_render_request(worker_id: str) -> Optional[dict]:
-    """Claim the next pending render request."""
+    """Claim the next pending render request (MEASURE first, then THUMB)."""
     conn = get_connection()
     try:
         conn.autocommit = False
@@ -96,7 +96,9 @@ def claim_render_request(worker_id: str) -> Optional[dict]:
                 SELECT id, job_id, page_num, kind, dpi
                 FROM render_requests
                 WHERE status = 'PENDING'
-                ORDER BY created_at
+                ORDER BY
+                    CASE kind WHEN 'MEASURE' THEN 0 ELSE 1 END,
+                    created_at
                 FOR UPDATE SKIP LOCKED
                 LIMIT 1
                 """
@@ -106,8 +108,6 @@ def claim_render_request(worker_id: str) -> Optional[dict]:
                 conn.rollback()
                 return None
 
-            # No locking columns on render_requests; just mark in-progress
-            # by returning the row. Actual status update happens after render.
             conn.commit()
             return dict(row)
     except Exception:
@@ -221,6 +221,58 @@ def fail_render_request(request_id: str) -> None:
             (request_id,),
         )
         conn.commit()
+
+
+# ─── Render Queue Cleanup ─────────────────────────────────────────────────────
+
+
+def expire_stale_thumb_requests(max_age_minutes: int = 15) -> int:
+    """Delete PENDING THUMB requests older than max_age_minutes.
+
+    Returns the number of deleted rows.
+    """
+    with get_cursor() as (cur, conn):
+        cur.execute(
+            """
+            DELETE FROM render_requests
+            WHERE status = 'PENDING'
+              AND kind = 'THUMB'
+              AND created_at < NOW() - %s * INTERVAL '1 minute'
+            """,
+            (max_age_minutes,),
+        )
+        deleted = cur.rowcount
+        conn.commit()
+        return deleted
+
+
+def cap_pending_thumbs_per_job(max_pending: int = 20) -> int:
+    """For each job, keep only the newest max_pending PENDING THUMBs.
+
+    Returns total number of deleted rows.
+    """
+    with get_cursor() as (cur, conn):
+        cur.execute(
+            """
+            DELETE FROM render_requests
+            WHERE id IN (
+                SELECT id FROM (
+                    SELECT id,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY job_id
+                               ORDER BY created_at DESC
+                           ) AS rn
+                    FROM render_requests
+                    WHERE status = 'PENDING' AND kind = 'THUMB'
+                ) ranked
+                WHERE rn > %s
+            )
+            """,
+            (max_pending,),
+        )
+        deleted = cur.rowcount
+        conn.commit()
+        return deleted
 
 
 # ─── Worker Heartbeat ────────────────────────────────────────────────────────

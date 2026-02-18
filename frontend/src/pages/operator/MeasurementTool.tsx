@@ -34,6 +34,8 @@ const ELASTIC_FACTOR = 0.25;
 const SNAP_SPEED = 0.15;
 const HIT_RADIUS_PX = 12;
 const LINE_HIT_DIST_PX = 8;
+const DELETE_BTN_RADIUS = 10;
+const DELETE_BTN_OFFSET = 20;
 
 type DragTarget =
   | { kind: "calib-pt"; idx: 0 | 1 }
@@ -41,6 +43,8 @@ type DragTarget =
   | { kind: "calib-line"; anchorOffset: [Point, Point] }
   | { kind: "measure-line"; anchorOffset: [Point, Point] }
   | null;
+
+type DeleteBtnHit = "calib" | "measure" | null;
 
 const FRACTION_OPTIONS = [
   { label: "0", value: 0 },
@@ -299,6 +303,36 @@ export function MeasurementTool() {
     }
 
     ctx.restore();
+
+    // Draw delete buttons in screen space (so they stay crisp and sized)
+    const drawDeleteBtn = (imgPts: Point[], color: string) => {
+      if (imgPts.length < 2) return;
+      const mx = (imgPts[0].x + imgPts[1].x) / 2;
+      const topY = Math.min(imgPts[0].y, imgPts[1].y);
+      const sx = mx * z + off.x;
+      const sy = topY * z + off.y - DELETE_BTN_OFFSET;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(sx, sy, DELETE_BTN_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const s = 4;
+      ctx.beginPath();
+      ctx.moveTo(sx - s, sy - s);
+      ctx.lineTo(sx + s, sy + s);
+      ctx.moveTo(sx + s, sy - s);
+      ctx.lineTo(sx - s, sy + s);
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    if (cPts.length === 2) drawDeleteBtn(cPts, "#f97316");
+    if (mPts.length === 2) drawDeleteBtn(mPts, "#3b82f6");
   }, []);
 
   // ── Minimap drawing (uses current minimapSize via closure over refs) ──
@@ -481,6 +515,29 @@ export function MeasurementTool() {
     return null;
   }, [distToPoint, distToSegment]);
 
+  // ── Hit-test for canvas-drawn delete buttons (screen coordinates) ──
+  const hitTestDeleteBtn = useCallback((clientX: number, clientY: number): DeleteBtnHit => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect) return null;
+    const screenX = clientX - rect.left;
+    const screenY = clientY - rect.top;
+    const z = zoomRef.current;
+    const off = offsetRef.current;
+
+    const checkBtn = (pts: Point[]): boolean => {
+      if (pts.length < 2) return false;
+      const mx = (pts[0].x + pts[1].x) / 2;
+      const topY = Math.min(pts[0].y, pts[1].y);
+      const sx = mx * z + off.x;
+      const sy = topY * z + off.y - DELETE_BTN_OFFSET;
+      return Math.hypot(screenX - sx, screenY - sy) <= DELETE_BTN_RADIUS + 2;
+    };
+
+    if (checkBtn(calibPointsRef.current)) return "calib";
+    if (checkBtn(measurePointsRef.current)) return "measure";
+    return null;
+  }, []);
+
   // ── Recalculate measured distance from current points ──
   const recalcMeasureDist = useCallback(() => {
     const mPts = measurePointsRef.current;
@@ -500,8 +557,7 @@ export function MeasurementTool() {
     calibrationRef.current = null;
     setCalibration(null);
     setShowCalibDialog(false);
-    measurePointsRef.current = [];
-    setMeasurePointCount(0);
+    // Keep measurement line drawn but invalidate calculated distance
     measuredDistRef.current = null;
     setMeasuredDistDisplay(null);
     scheduleDraw();
@@ -519,6 +575,12 @@ export function MeasurementTool() {
   const handleMouseDown = useCallback(
     (e: ReactMouseEvent<HTMLCanvasElement>) => {
       cancelAnimationFrame(snapAnimRef.current);
+
+      // Check for delete button clicks first (works in all tool modes)
+      const delHit = hitTestDeleteBtn(e.clientX, e.clientY);
+      if (delHit === "calib") { handleDeleteCalibration(); return; }
+      if (delHit === "measure") { handleDeleteMeasure(); return; }
+
       if (tool === "pan") {
         draggingRef.current = true;
         dragStartRef.current = {
@@ -566,7 +628,7 @@ export function MeasurementTool() {
         }
       }
     },
-    [tool, canvasToImg, scheduleDraw, hitTest],
+    [tool, canvasToImg, scheduleDraw, hitTest, hitTestDeleteBtn, handleDeleteCalibration, handleDeleteMeasure],
   );
 
   const handleMouseMove = useCallback(
@@ -626,7 +688,12 @@ export function MeasurementTool() {
         return;
       }
 
-      // Hover cursor detection (only in calibrate/measure mode)
+      // Hover cursor detection
+      const delHover = hitTestDeleteBtn(e.clientX, e.clientY);
+      if (delHover) {
+        setCanvasCursor("pointer");
+        return;
+      }
       if (tool === "calibrate" || tool === "measure") {
         const pt = canvasToImg(e.clientX, e.clientY);
         const hit = hitTest(pt);
@@ -641,7 +708,7 @@ export function MeasurementTool() {
         }
       }
     },
-    [applyElastic, scheduleDraw, canvasToImg, hitTest, tool, recalcMeasureDist],
+    [applyElastic, scheduleDraw, canvasToImg, hitTest, hitTestDeleteBtn, tool, recalcMeasureDist],
   );
 
   const handleMouseUp = useCallback(() => {
@@ -1133,44 +1200,6 @@ export function MeasurementTool() {
             onMouseLeave={handleMouseUp}
           />
         )}
-
-        {/* Floating delete buttons near lines */}
-        {!isLoading && (calibPointCount >= 2 || calibration != null) && calibPointsRef.current.length === 2 && (() => {
-          const z = zoomRef.current;
-          const off = offsetRef.current;
-          const cPts = calibPointsRef.current;
-          const sx = (cPts[0].x * z + off.x + cPts[1].x * z + off.x) / 2;
-          const sy = Math.min(cPts[0].y * z + off.y, cPts[1].y * z + off.y) - 28;
-          return (
-            <button
-              type="button"
-              className="absolute z-30 flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-white shadow-md hover:bg-orange-600 transition-colors"
-              style={{ left: sx - 10, top: sy }}
-              title="Delete calibration line"
-              onClick={handleDeleteCalibration}
-            >
-              <X size={12} />
-            </button>
-          );
-        })()}
-        {!isLoading && measurePointCount >= 2 && measurePointsRef.current.length === 2 && (() => {
-          const z = zoomRef.current;
-          const off = offsetRef.current;
-          const mPts = measurePointsRef.current;
-          const sx = (mPts[0].x * z + off.x + mPts[1].x * z + off.x) / 2;
-          const sy = Math.min(mPts[0].y * z + off.y, mPts[1].y * z + off.y) - 28;
-          return (
-            <button
-              type="button"
-              className="absolute z-30 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white shadow-md hover:bg-blue-600 transition-colors"
-              style={{ left: sx - 10, top: sy }}
-              title="Delete measurement line"
-              onClick={handleDeleteMeasure}
-            >
-              <X size={12} />
-            </button>
-          );
-        })()}
 
         {/* Calibration dialog (draggable) */}
         {showCalibDialog && (

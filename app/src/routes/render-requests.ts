@@ -18,6 +18,7 @@ export async function renderRequestRoutes(app: FastifyInstance) {
     }
 
     const defaultDpi = kind === "THUMB" ? 72 : 200;
+    const MAX_PENDING_THUMBS_PER_JOB = 20;
 
     // Deduplication: check if a non-failed request already exists
     const existing = await prisma.renderRequest.findFirst({
@@ -30,12 +31,31 @@ export async function renderRequestRoutes(app: FastifyInstance) {
     });
 
     if (existing) {
-      // If already done, return with presigned URL
       if (existing.status === "DONE" && existing.outputKey) {
         const url = await presignedGetUrl(BUCKETS.PAGE_CACHE, existing.outputKey);
         return reply.send({ ...existing, downloadUrl: url });
       }
       return reply.send(existing);
+    }
+
+    // Cap PENDING THUMBs per job to prevent queue flooding
+    if (kind === "THUMB") {
+      const pendingCount = await prisma.renderRequest.count({
+        where: { jobId, kind: "THUMB", status: "PENDING" },
+      });
+      if (pendingCount >= MAX_PENDING_THUMBS_PER_JOB) {
+        const oldest = await prisma.renderRequest.findMany({
+          where: { jobId, kind: "THUMB", status: "PENDING" },
+          orderBy: { createdAt: "asc" },
+          take: pendingCount - MAX_PENDING_THUMBS_PER_JOB + 1,
+          select: { id: true },
+        });
+        if (oldest.length > 0) {
+          await prisma.renderRequest.deleteMany({
+            where: { id: { in: oldest.map((r) => r.id) } },
+          });
+        }
+      }
     }
 
     const renderReq = await prisma.renderRequest.create({
