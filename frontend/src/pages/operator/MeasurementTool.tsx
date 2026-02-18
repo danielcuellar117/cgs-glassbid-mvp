@@ -155,7 +155,7 @@ export function MeasurementTool() {
   const renderReq = useRenderRequest(renderId ?? "");
   const [skipDialogTarget, setSkipDialogTarget] = useState<"single" | "page" | null>(null);
   const [skipTaskId, setSkipTaskId] = useState<string | null>(null);
-  const [justAssigned, setJustAssigned] = useState<string | null>(null);
+  const [justAssigned, setJustAssigned] = useState<{ id: string; action: "assigned" | "skipped" } | null>(null);
 
   const pageTasks = useMemo(
     () => (tasks ?? []).filter((t) => t.pageNum === pageNum),
@@ -1005,7 +1005,7 @@ export function MeasurementTool() {
       measuredDistRef.current = null;
       setMeasuredDistDisplay(null);
       setSelectedTask(null);
-      setJustAssigned(taskId);
+      setJustAssigned({ id: taskId, action: "assigned" });
       scheduleDraw();
     },
     [completeMeasurement, scheduleDraw],
@@ -1498,7 +1498,7 @@ export function MeasurementTool() {
           <div className="mt-3 rounded-lg border border-green-200 bg-green-50 p-3">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-green-700 mb-2">
               <CheckCircle2 size={14} />
-              Measurement saved!
+              {justAssigned.action === "assigned" ? "Measurement saved!" : "Task skipped!"}
             </div>
             {nextPendingTask ? (
               <button
@@ -1607,7 +1607,7 @@ export function MeasurementTool() {
           onConfirm={(reason) => {
             skipTask.mutate(
               { id: skipTaskId, reason },
-              { onSuccess: () => { setSkipDialogTarget(null); setSkipTaskId(null); } },
+              { onSuccess: () => { setSkipDialogTarget(null); setJustAssigned({ id: skipTaskId, action: "skipped" }); setSkipTaskId(null); } },
             );
           }}
         />
@@ -1621,7 +1621,7 @@ export function MeasurementTool() {
           onConfirm={(reason) => {
             bulkSkip.mutate(
               { taskIds: pendingPageTasks.map((t) => t.id), reason },
-              { onSuccess: () => setSkipDialogTarget(null) },
+              { onSuccess: () => { setSkipDialogTarget(null); setJustAssigned({ id: "bulk", action: "skipped" }); } },
             );
           }}
         />
