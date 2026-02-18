@@ -1,606 +1,670 @@
-# Luxurius Glass - User Guide
+# Luxurius Glass - User Guide (For Everyone)
 
-A step-by-step guide to creating glass proposals from architectural blueprints. No technical knowledge required.
+Welcome! This guide will walk you through every step of using Luxurius Glass. No tech skills needed. If you can use a web browser, you can use this app.
 
 ---
 
 ## Table of Contents
 
-1. [Getting Started](#1-getting-started)
-2. [Your First Project](#2-your-first-project)
-3. [Uploading a PDF](#3-uploading-a-pdf)
-4. [Watching the Progress](#4-watching-the-progress)
-5. [Browsing the Pages](#5-browsing-the-pages)
-6. [Taking Measurements](#6-taking-measurements)
-7. [Reviewing Extracted Items](#7-reviewing-extracted-items)
-8. [Reviewing Prices](#8-reviewing-prices)
-9. [Downloading Your Documents](#9-downloading-your-documents)
-10. [Managing Pricing Rules (Admin)](#10-managing-pricing-rules-admin)
-11. [Monitoring the System (Admin)](#11-monitoring-the-system-admin)
-12. [Quick Reference Card](#12-quick-reference-card)
-13. [Frequently Asked Questions](#13-frequently-asked-questions)
+1. [Opening the App](#1-opening-the-app)
+2. [Creating Your First Project](#2-creating-your-first-project)
+3. [Uploading Your Blueprint PDF](#3-uploading-your-blueprint-pdf)
+4. [Waiting While the System Works](#4-waiting-while-the-system-works)
+5. [Looking at Your Pages](#5-looking-at-your-pages)
+6. [Measuring Things on the Drawing](#6-measuring-things-on-the-drawing)
+7. [Checking What the System Found](#7-checking-what-the-system-found)
+8. [Reviewing the Prices](#8-reviewing-the-prices)
+9. [Getting Your Final Documents](#9-getting-your-final-documents)
+10. [Managing Prices (Admin Only)](#10-managing-prices-admin-only)
+11. [Checking System Health (Admin Only)](#11-checking-system-health-admin-only)
+12. [Cheat Sheet](#12-cheat-sheet)
+13. [Common Questions](#13-common-questions)
 
 ---
 
-## 1. Getting Started
+## 1. Opening the App
 
-Open your web browser and go to **http://localhost**. You will see the main screen of the application.
+Open your web browser (Chrome, Edge, Firefox -- any will work) and go to the address your admin gave you.
 
-### What You Will See
+### What does the screen look like?
 
-On the left side there is a **navigation menu** with two sections:
+You will see a **menu on the left side** of the screen. Think of it like a table of contents for the app.
 
-**For daily work:**
-- **Dashboard** -- Your home screen showing all projects
-- **New Project** -- Start a new glass proposal
+**The menu has two groups:**
 
-**For administrators:**
-- **Admin Overview** -- System statistics at a glance
-- **Pricebook** -- Manage your pricing rules
-- **Templates** -- View available shop drawing templates
-- **System Health** -- Check that everything is running properly
-- **Audit Log** -- Review the history of all changes
+**Your daily tools:**
+- **Dashboard** -- This is your home page. It shows all your projects in one place.
+- **New Project** -- Click here when you want to start working on a new blueprint.
 
-You can collapse the side menu by clicking the **arrow icon** at the top left corner. This gives you more screen space when working.
+**Admin tools** (you may not have access to these):
+- **Admin Overview** -- Numbers and stats about the system.
+- **Pricebook** -- Where you set your prices for glass, hardware, labor, etc.
+- **Templates** -- Shop drawing templates.
+- **System Health** -- Is everything working? Check here.
+- **Audit Log** -- A history of everything that happened in the system.
 
-At the top of the page, you will always see **breadcrumbs** (for example: Home > Projects > New) so you know exactly where you are.
-
----
-
-## 2. Your First Project
-
-### Step 1: Open the New Project Form
-
-From the Dashboard, click the **"+ New Project"** button in the top right corner. You can also click **"New Project"** in the side menu.
-
-### Step 2: Fill in the Project Details
-
-You will see a form with three fields:
-
-| Field | Required? | What to Enter | Example |
-|-------|:---------:|---------------|---------|
-| **Project Name** | Yes | A name that helps you identify this project | Oceanview Tower - Unit 42A |
-| **Client Name** | No | The name of the general contractor or client | Acme Construction |
-| **Address** | No | The project site address | 123 Ocean Drive, Miami FL |
-
-> **Tip:** Use a descriptive project name. You will be searching for it later on the Dashboard.
-
-### Step 3: Attach Your PDF File
-
-Below the form, you will see an upload area with a dashed border. You have two ways to select your file:
-
-- **Drag and drop** your PDF file from your file explorer onto the upload area
-- **Click** anywhere inside the upload area to open a file browser
-
-Only PDF files are accepted. The maximum file size is 10 GB.
-
-Once your file is selected, you will see the file name and size displayed. If you picked the wrong file, click the **X** button next to the file name to remove it and try again.
-
-### Step 4: Create and Upload
-
-Click the **"Create Project & Upload"** button at the bottom.
-
-The system will begin uploading your file. You will see a progress bar showing how much has been uploaded. If your internet connection drops during the upload, do not worry -- the upload will resume from where it left off when your connection comes back.
-
-When the upload finishes, you will see a green success message and the system will automatically take you to the next screen.
+**Helpful things to know:**
+- You can **collapse the menu** by clicking the little arrow at the top-left corner. This gives you more room to work.
+- At the very top of the page, you will always see something like **Home > Projects > New**. These are called "breadcrumbs" and they tell you where you are. You can click on any part to go back.
 
 ---
 
-## 3. Uploading a PDF
+## 2. Creating Your First Project
 
-### What Happens During Upload
+A "project" is like a folder for one job. Each blueprint PDF you work on gets its own project.
 
-After you click "Create Project & Upload", three things happen automatically:
+### How to create one
 
-1. Your project is saved
-2. A processing job is created for your PDF
-3. The file begins uploading
+**Step 1:** Click the **"+ New Project"** button. You can find it:
+- On the Dashboard page (top-right corner), OR
+- In the left menu under "New Project"
 
-### What You Will See
+**Step 2:** Fill in the form. It only has three fields:
 
-- A **progress bar** showing the percentage complete
-- The amount uploaded vs the total size (for example: 45 MB / 120 MB)
+| What to fill in | Do I have to? | What should I write? | Example |
+|-----------------|:------------:|----------------------|---------|
+| **Project Name** | YES | A short name so you can find this project later | Oceanview Tower - Unit 42A |
+| **Client Name** | No | Who is this for? | Acme Construction |
+| **Address** | No | Where is the project? | 123 Ocean Drive, Miami FL |
 
-### If Something Goes Wrong
+**Good to know:** Pick a project name you will recognize later. Something like "Smith Residence - Bathrooms" is much better than "Project 1".
 
-If the upload fails, you will see a red error message with two options:
-- **"Try Again"** -- Retry the upload
-- **"View Job"** -- Go to the job status page to see more details
+**Step 3:** Attach your PDF file. You will see a box with a dashed border. You can either:
+- **Drag your file** from your computer and drop it onto that box, OR
+- **Click the box** and a file browser will open so you can find your file
 
-> **Tip:** Large files (over 500 MB) may take several minutes to upload. This is normal. Do not close your browser during the upload.
+Only PDF files work. The file can be up to 10 GB.
 
----
+Once you pick a file, its name and size will show up. Picked the wrong one? Click the **X** next to the file name to remove it and try again.
 
-## 4. Watching the Progress
+**Step 4:** Click the big **"Create Project & Upload"** button at the bottom.
 
-After your PDF uploads successfully, you are taken to the **Job Status** page. This is where you watch the system process your blueprints.
-
-### The Progress Bar
-
-At the top of the page, you will see a horizontal progress bar with numbered steps. Each step represents one phase of the processing:
-
-| Step | What It Means |
-|------|--------------|
-| 1. Created | Your job was created |
-| 2. Uploading | The PDF is being uploaded |
-| 3. Uploaded | Upload complete |
-| 4. Indexing | The system is reading and classifying each page of your PDF |
-| 5. Routing | The system is figuring out how to process each page |
-| 6. Extracting | The system is finding glass items (showers, mirrors, dimensions, hardware) |
-| 7. **Needs Review** | The system is done extracting -- it needs you to check the results |
-| 8. Pricing | Prices are being calculated |
-| 9. Generating | Your final documents are being created |
-| 10. Done | Everything is finished and ready to download |
-
-### How the Steps Look
-
-- **Green checkmark** -- This step is complete
-- **Spinning circle** -- This step is currently in progress
-- **Gray number** -- This step has not started yet
-- **Red X** -- Something went wrong at this step
-
-### What to Do
-
-Most of the time, you just wait. The system processes your PDF automatically through steps 1-6. This usually takes between 30 seconds and 5 minutes depending on the size of your PDF.
-
-When the progress bar reaches **"Needs Review"** (step 7), an orange card will appear with buttons to continue. This is when the system needs your help.
-
-> **Tip:** The page updates in real time. You do not need to refresh your browser.
+That is it! The upload starts automatically.
 
 ---
 
-## 5. Browsing the Pages
+## 3. Uploading Your Blueprint PDF
 
-When the system reaches "Needs Review", you can browse all the pages of your PDF to see how they were classified.
+### What is happening now?
 
-### How to Get Here
+After you click "Create Project & Upload", the system does three things:
+1. Saves your project information
+2. Creates a processing job
+3. Starts uploading your file
+
+### What do I see on screen?
+
+A **progress bar** showing how much of the file has been uploaded. It also shows numbers like "45 MB / 120 MB" so you know how far along it is.
+
+### What if something goes wrong?
+
+If the upload fails (maybe your internet dropped), you will see a red message with two buttons:
+- **"Try Again"** -- Click this to restart the upload
+- **"View Job"** -- Go see more details about what happened
+
+**Don't panic.** If your internet drops during upload, the system will try to pick up where it left off when your connection comes back.
+
+**Big files take time.** A file over 500 MB could take several minutes. This is normal. Just don't close your browser while it is uploading.
+
+---
+
+## 4. Waiting While the System Works
+
+After the upload finishes, you land on the **Job Status** page. This is where you watch the magic happen.
+
+### The progress bar
+
+At the top of the page there is a horizontal bar with numbered steps. Here is what each step means (in plain English):
+
+| Step | Name | What is happening |
+|:----:|------|-------------------|
+| 1 | Created | Your job was created. Done! |
+| 2 | Uploading | Your PDF is being sent to the server. |
+| 3 | Uploaded | Upload finished. |
+| 4 | Indexing | The system is reading every page and figuring out what each one is (floor plan? schedule? notes?). |
+| 5 | Routing | The system is deciding the best way to process each page. |
+| 6 | Extracting | The system is finding glass items -- showers, mirrors, dimensions, hardware. |
+| 7 | **Needs Review** | **YOUR TURN!** The system needs you to check the results. |
+| 8 | Pricing | Prices are being calculated based on your pricing rules. |
+| 9 | Generating | Your final PDFs (bid proposal + shop drawings) are being created. |
+| 10 | Done | Everything is finished. Download your files! |
+
+### What do the icons mean?
+
+- **Green checkmark** = This step is done.
+- **Spinning circle** = This step is happening right now.
+- **Gray number** = This step has not started yet.
+- **Red X** = Something went wrong. (See the FAQ section for what to do.)
+
+### What do I do?
+
+**Nothing, for now!** Just wait. Steps 1 through 6 happen automatically. It usually takes between 30 seconds and 5 minutes, depending on how big your PDF is.
+
+When the bar reaches step 7 ("Needs Review"), an **orange card** will pop up with buttons telling you what to do next. That is when the system needs your help.
+
+**You do NOT need to refresh the page.** It updates on its own in real time.
+
+---
+
+## 5. Looking at Your Pages
+
+When the system reaches "Needs Review", you can browse all the pages from your PDF.
+
+### How do I get here?
 
 From the Job Status page, click **"View Pages"** in the orange card, or click **"Pages"** in the quick navigation area.
 
-### What You Will See
+### What does it look like?
 
-A grid of small preview images (thumbnails) for every page in your PDF. Each thumbnail shows:
+A grid of small pictures (thumbnails) of every page in your PDF. Each one shows:
 
-- A miniature view of the page
+- A tiny preview of the page
 - The **page number**
-- A **colored label** showing what type of page it is:
-  - **Floor Plan** -- Overhead view of the space
-  - **Elevation** -- Side view showing walls and openings
-  - **Schedule** -- Table listing glass items and specifications
-  - **Detail** -- Close-up drawing of a specific area
-  - **Notes** -- Written specifications or notes
-  - **Title** -- Title/cover page
-  - **Irrelevant** -- Not related to glass work
-- A **"Relevant" tag** if the page contains glass-related information (showers, mirrors, etc.)
+- A **colored label** that tells you what type of page it is:
 
-### What to Do
+| Label | What it means |
+|-------|--------------|
+| **Floor Plan** | A view from above showing the room layout |
+| **Elevation** | A side view showing walls and openings |
+| **Schedule** | A table listing glass items and their specs |
+| **Detail** | A close-up of one specific area |
+| **Notes** | Written specifications |
+| **Title** | The cover page |
+| **Irrelevant** | Not related to glass work |
 
-Click on any page thumbnail to open the **Measurement Tool** for that page. This is useful when you need to manually measure a dimension that the system could not read automatically.
+Pages that are related to glass work will also have a green **"Relevant"** tag.
+
+### What can I do here?
+
+Click on any page thumbnail to open the **Measurement Tool** for that page. This is where you can manually measure things on the drawing.
 
 ---
 
-## 6. Taking Measurements
+## 6. Measuring Things on the Drawing
 
-Sometimes the system cannot automatically extract all dimensions from the blueprints. When this happens, it creates **measurement tasks** -- items that need you to manually measure a dimension from the drawings.
+Sometimes the system cannot automatically read all the dimensions from the blueprints. When this happens, it creates **measurement tasks** -- things that need you to manually measure a length from the drawing.
 
-### How to Get Here
+### How do I get here?
 
 - Click a page thumbnail from the Pages view
 - Click a **"Measure"** link next to an item in the Review table
 
-### What You Will See
+### What does the screen look like?
 
-This is a full-screen drawing viewer with three areas:
+The screen is divided into three areas:
 
-- **Left toolbar** -- Tools for navigating and measuring
-- **Center** -- A large, zoomable view of the blueprint page
-- **Right panel** -- A list of measurement tasks waiting to be completed
+| Area | Where | What it does |
+|------|-------|-------------|
+| **Toolbar** | Left side (thin strip) | Buttons for all the tools you need |
+| **Drawing** | Center (big area) | A zoomable view of the blueprint page |
+| **Task list** | Right side | Shows measurement tasks waiting to be completed |
 
-### Step-by-Step: How to Measure
+### Moving around the drawing
 
-#### 1. Set the Scale (Calibration)
+Before measuring, you need to know how to move around:
 
-Before you can measure anything, you need to tell the system the scale of the drawing. You do this by marking a known dimension.
-
-1. Click the **"Calibrate"** tool in the left toolbar (it looks like a ruler)
-2. Find a dimension on the drawing that you already know (for example, a door opening marked as 36")
-3. Click on one end of that dimension line
-4. Click on the other end of that dimension line
-5. A dialog box will appear asking: "What is the actual measurement in inches?"
-6. Type the real measurement (for example: `36`) and click **OK**
-
-The system now knows the scale of this page. You only need to calibrate once per page.
-
-#### 2. Take a Measurement
-
-1. Click the **"Measure"** tool in the left toolbar
-2. Click on one end of the dimension you want to measure
-3. Click on the other end
-4. A blue line will appear with the measurement shown in inches (for example: `48.5"`)
-
-#### 3. Assign the Measurement to a Task
-
-1. Look at the **right panel** for the list of pending measurement tasks
-2. Click on the task that matches the measurement you just took
-3. Click the **"Assign"** button
-4. The task will be marked as complete
-
-#### 4. Need More Detail? (Optional)
-
-If the image is too blurry or small to read:
-- Click the **"Render HD"** button in the left toolbar
-- Wait a few seconds for a higher resolution version to load
-- Now you can zoom in further and see more detail
-
-### Navigation Tips
-
-- **Scroll your mouse wheel** to zoom in and out
-- Select the **"Pan"** tool (hand icon) and drag to move around the drawing
-- Use the **"Zoom In"** and **"Zoom Out"** buttons for precise control
+- **Zoom in/out:** Scroll your mouse wheel up (zoom in) or down (zoom out)
+- **Pan (move around):** Click the **hand icon** (Pan tool) in the toolbar, then click-and-drag the drawing to scroll
+- **Zoom buttons:** Use the **+** and **-** buttons in the toolbar for precise control
+- **Reset view:** Press the **R** key on your keyboard, or click the reset button in the toolbar
+- **Minimap:** In the bottom-right corner you will see a small overview of the entire page. Click anywhere on it to jump to that area. You can drag the top-left corner of the minimap to make it bigger or smaller.
 
 ---
 
-## 7. Reviewing Extracted Items
+### The Three Steps: Calibrate, Measure, Assign
 
-This is the most important screen in the workflow. Here you check everything the system found in your blueprints and make corrections if needed.
+Think of it like using a ruler on a printed drawing. First you need to figure out the scale, then you measure, then you write it down.
 
-### How to Get Here
+---
 
-From the Job Status page, click **"Review Items"** in the orange card, or click **"Review"** in the quick navigation area.
+#### STEP 1: Calibrate (Set the Scale)
 
-### What You Will See
+**Why?** The drawing is scaled down. A wall that is 10 feet in real life might only be 3 inches on the drawing. Calibrating tells the system what the scale is, so it can calculate real measurements.
 
-A table listing every glass item found in the PDF. Each row is one item (a shower enclosure, a mirror, etc.).
+**You only need to do this ONCE per page.**
 
-### Understanding the Table
+1. Find a dimension on the drawing that **already has its measurement written** on it. For example, a line that says "7'-0"" or "84"".
+2. In the left toolbar, click the **Calibrate tool** (it looks like a crosshair target).
+3. Click on **one end** of that known dimension line. A small orange dot appears.
+4. Click on the **other end** of the same line. A second orange dot appears and an orange line connects them.
+5. A dialog box pops up asking you to enter the real-world length.
+6. You can enter the measurement in two ways:
+   - **Feet + Inches + Fraction:** Fill in the three fields (e.g., 7 feet, 0 inches, 0 fraction)
+   - **Inches only:** Switch to the "Inches only" tab and type the total (e.g., 84)
+7. The dialog shows you a preview of what you entered (e.g., "= 84.0000" (7' - 0")").
+8. Click **"Set Scale"**.
 
-| Column | What It Shows |
+**Done!** The status bar at the bottom now says "Scale calibrated" in green. The system automatically switches to the Measure tool.
+
+**Made a mistake with the calibration points?** No problem:
+- **Drag the orange dots** to adjust their position -- just hover over a dot until the cursor changes, then click and drag.
+- **Drag the orange line** itself to move both points at the same time.
+- **Delete it:** Press the **Delete** or **Esc** key, or click the orange trash icon in the toolbar, or click the small orange **X** button that floats near the line.
+
+---
+
+#### STEP 2: Measure
+
+Now you can measure anything on the drawing and the system will tell you the real-world size.
+
+1. Make sure the **Measure tool** is selected (ruler icon in the toolbar). It should already be selected after calibrating.
+2. **Zoom in** close to the area you want to measure. The closer you zoom, the more accurate your click will be.
+3. Click on **one end** of the thing you want to measure. A blue dot appears.
+4. Click on the **other end**. A second blue dot appears and a blue line connects them.
+5. The measurement appears right on the drawing in blue text (for example: "4' - 2 1/4"").
+6. The measurement also appears in the bottom status bar.
+
+**Need to adjust?** You have several options:
+- **Drag a blue dot** to move just that endpoint. Hover over the dot until the cursor changes to a hand, then click and drag. The measurement updates in real time as you drag.
+- **Drag the blue line** itself to move the entire measurement (both points move together, keeping the same distance and angle).
+- **Delete it:** Press the **Delete** or **Esc** key, or click the blue **X** button in the toolbar, or click the small blue **X** button that floats near the line.
+- **Start over:** Just click two new points on the drawing.
+
+---
+
+#### STEP 3: Assign the Measurement to a Task
+
+Now that you have a measurement, you need to tell the system which item it belongs to.
+
+1. Look at the **right panel** for the list of measurement tasks. Each task has a name (like "Width" or "Height") and an item ID.
+2. Click on the task that matches your measurement. It will get a blue highlight.
+3. Click the **"Assign"** button that appears on that task. It will show the measurement value (e.g., "Assign 4' - 2 1/4"").
+4. The task is now marked as complete and disappears from the pending list.
+5. The blue measurement line is cleared, and you can start measuring the next item.
+
+**Want to skip a task?** If a task does not apply to this page (for example, the dimension is on a different page), click the **"Skip"** button on that task. You will be asked to write a short reason.
+
+**Want to skip ALL tasks on this page?** Click the **"Skip all tasks on this page"** button at the top of the task list.
+
+---
+
+### If the Image is Blurry
+
+If you zoom in and the image is blurry or hard to read:
+1. Click the **"HD"** button in the toolbar (it looks like a monitor with an up arrow)
+2. Wait a few seconds for a higher quality image to load
+3. Now you can zoom in much further and see more detail
+
+This takes a little longer to load but gives you a much sharper image.
+
+---
+
+### Measurement Tool - Quick Reference
+
+| What you want to do | How to do it |
+|---------------------|-------------|
+| **Zoom in** | Scroll mouse wheel up |
+| **Zoom out** | Scroll mouse wheel down |
+| **Move around the drawing** | Select Pan tool (hand icon), then click and drag |
+| **Calibrate** | Select Calibrate tool (crosshair), click two points, enter measurement |
+| **Measure** | Select Measure tool (ruler), click two points |
+| **Move a point** | Hover over it (cursor changes to hand), then click and drag |
+| **Move an entire line** | Hover over the line (cursor changes to move arrow), then click and drag |
+| **Delete calibration** | Press Delete/Esc, or click the orange trash icon, or click the orange X near the line |
+| **Delete measurement** | Press Delete/Esc, or click the blue X icon, or click the blue X near the line |
+| **Reset the view** | Press the **R** key |
+| **Render in HD** | Click the HD button (monitor icon) |
+
+---
+
+## 7. Checking What the System Found
+
+This is the most important screen. Here you check everything the system extracted from your blueprints and fix any mistakes.
+
+### How do I get here?
+
+From the Job Status page, click **"Review Items"** in the orange card, or click **"Review"** in the navigation area.
+
+### What does it look like?
+
+A big table with one row for each glass item the system found (a shower, a mirror, etc.).
+
+### Understanding the columns
+
+| Column | What it means |
 |--------|--------------|
-| **#** | Item number |
-| **Category** | Type of item: Shower, Mirror, etc. |
+| **#** | Item number (just for counting) |
+| **Category** | What type of item: Shower, Mirror, etc. |
 | **Location** | Where it is in the building (e.g., "Unit 42A - Master Bath") |
-| **Configuration** | The style of installation (e.g., "Inline Panel + Door", "90-Degree Corner") |
+| **Configuration** | The style of glass (e.g., "Inline Panel + Door", "90-Degree Corner") |
 | **W** | Width in inches |
 | **H** | Height in inches |
-| **D** | Depth in inches (if applicable) |
-| **Glass Type** | Type of glass (e.g., "3/8 Clear Tempered") |
-| **Hardware** | Hardware finish (e.g., "Brushed Nickel") |
-| **Qty** | Quantity |
-| **Confidence** | How confident the system is about this extraction |
-| **Flags** | Warnings or issues to review |
-| **Measure** | Link to the measurement tool for this item's page |
+| **D** | Depth in inches (not always needed) |
+| **Glass Type** | What kind of glass (e.g., "3/8 Clear Tempered") |
+| **Hardware** | What finish the hardware is (e.g., "Brushed Nickel") |
+| **Qty** | How many of this item |
+| **Confidence** | How sure the system is about this item (see below) |
+| **Flags** | Warnings you should look at (see below) |
+| **Measure** | A link to measure this item's dimensions on the drawing |
 
-### Confidence Levels
+### What do the confidence levels mean?
 
-Each item has a confidence indicator that helps you prioritize what to check:
+Think of it like a traffic light:
 
-- **HIGH** (green) -- The system is very confident. A quick glance is usually enough.
-- **MEDIUM** (yellow) -- You should verify this item. Some dimensions may be approximate.
-- **LOW** (red) -- You should definitely check this item carefully. Something was unclear in the blueprints.
+- **HIGH (green):** The system is very confident. Just give it a quick look.
+- **MEDIUM (yellow):** The system is somewhat sure, but you should double-check the dimensions.
+- **LOW (red):** The system is not confident. **Please check this item carefully.** Something in the blueprint was hard to read.
 
-### Warning Flags
+### What do the warning flags mean?
 
-You may see colored warning chips next to some items:
+| Flag | What it means | What should I do? |
+|------|--------------|-------------------|
+| **Range Warning** | A dimension seems unrealistically large or small | Look at the W, H, or D values. Is a shower really 200 inches wide? Probably not. |
+| **Incomplete** | One or more dimensions are missing (it will say "TBV") | Use the Measurement Tool to manually measure the missing dimension. |
+| **Math Issue** | The dimensions do not add up | Review and correct the W, H, D values. |
+| **Possible Duplicate** | This item looks almost identical to another one | Check if it is really two separate items or if the system accidentally counted it twice. |
 
-| Flag | What It Means | What to Do |
-|------|--------------|------------|
-| **Range Warning** | A dimension seems too large or too small | Double-check the W, H, or D values |
-| **Incomplete** | One or more dimensions are missing (shown as "TBV") | Use the Measure tool to fill in the missing value |
-| **Math Issue** | The dimensions do not add up correctly | Review and correct the W, H, D values |
-| **Possible Duplicate** | This item looks very similar to another one | Check if it is really a separate item or a duplicate |
+### How do I fix a dimension?
 
-### How to Edit a Dimension
+It is easy:
 
-1. Click directly on any **W**, **H**, or **D** cell
-2. The cell becomes editable -- type the correct value
+1. Click directly on any **W**, **H**, or **D** number in the table
+2. The cell turns into an editable field -- just type the correct number
 3. Press **Enter** to save, or **Escape** to cancel
-4. You can also click anywhere else on the page to save
+4. You can also just click somewhere else on the page to save
 
-### When You Are Done Reviewing
+### When am I done reviewing?
 
-At the top of the page, you will see a count of pending measurement tasks. All measurement tasks must be completed before you can move forward.
+At the top of the page, you will see how many measurement tasks are still pending. **All measurement tasks must be done** before you can continue.
 
-Once everything looks correct:
+When everything looks good:
 
 1. Make sure there are **zero pending measurement tasks**
 2. Click the **"Submit for Pricing"** button
-3. The system will automatically calculate prices for all items
+3. The system will calculate prices for everything
 
-> **Important:** Take your time on this step. The accuracy of your final proposal depends on the dimensions being correct.
+**Take your time here.** The accuracy of your final bid depends on these numbers being correct.
 
 ---
 
-## 8. Reviewing Prices
+## 8. Reviewing the Prices
 
-After you submit the review, the system applies your pricing rules and calculates costs for every item.
+After you submit the review, the system uses your pricing rules to calculate costs for every item.
 
-### How to Get Here
+### How do I get here?
 
-The system will take you here automatically after pricing is complete, or you can click **"Pricing"** in the quick navigation area on the Job Status page.
+The system takes you here automatically after pricing is done. You can also click **"Pricing"** on the Job Status page.
 
-### What You Will See
+### What does it look like?
 
-A detailed pricing table showing every item with its calculated price:
+A pricing table showing every item with its price broken down:
 
-| Column | What It Shows |
+| Column | What it shows |
 |--------|--------------|
 | **#** | Item number |
-| **Description** | Item description |
+| **Description** | What the item is |
 | **Category** | Shower, Mirror, etc. |
-| **Qty** | Quantity |
-| **Unit Price** | Price per unit |
-| **Total** | Quantity x Unit Price |
-| **Glass** | Glass material cost breakdown |
-| **Hardware** | Hardware cost breakdown |
-| **Labor** | Labor cost breakdown |
-| **Other** | Other costs |
+| **Qty** | How many |
+| **Unit Price** | Price for one of this item |
+| **Total** | Qty x Unit Price |
+| **Glass** | How much the glass costs |
+| **Hardware** | How much the hardware costs |
+| **Labor** | How much the labor costs |
+| **Other** | Any other costs |
 
-At the bottom of the table you will see:
-- **Subtotal** -- Sum of all line items
-- **Tax** -- Calculated tax amount
-- **Grand Total** -- Final total for the proposal
+At the bottom you will see:
+- **Subtotal** -- All items added together
+- **Tax** -- Tax amount
+- **Grand Total** -- The final number for the proposal
 
-### Adjusting a Price (Override)
+### Need to change a price?
 
-If you need to change the price for a specific item:
+Sometimes the auto-calculated price is not right for a specific situation.
 
 1. Click the **"Override"** button on that item's row
-2. A dialog will appear with two fields:
-   - **New Price** -- Enter the adjusted unit price
-   - **Reason** -- Explain why you are changing it (this is saved for record-keeping)
+2. A dialog pops up with two fields:
+   - **New Price** -- Type the correct price
+   - **Reason** -- Write why you are changing it (this is saved for your records)
 3. Click **"Apply"**
-4. The total will recalculate automatically
+4. The totals recalculate automatically
 
-Items with adjusted prices will show a small indicator so you can easily see which prices were changed manually.
+Items with changed prices will have a small indicator so you can easily spot them later.
 
-### When Prices Look Good
+### When prices look good
 
-Click the **"Generate PDFs"** button at the top of the page. The system will begin creating your final documents. You will be taken back to the Job Status page where you can watch the progress.
+Click the **"Generate PDFs"** button at the top. The system starts creating your final documents. You will be taken back to the Job Status page to watch the progress.
 
 ---
 
-## 9. Downloading Your Documents
+## 9. Getting Your Final Documents
 
-This is the final step. Your documents are ready to download and send to your client.
+This is the last step! Your documents are ready.
 
-### How to Get Here
+### How do I get here?
 
-When the Job Status page shows **"Done"** (green), click the **"View Results"** button. You can also click **"Results"** in the quick navigation area.
+When the Job Status page shows **"Done"** (all green), click the **"View Results"** button. You can also click **"Results"** in the navigation area.
 
-### What You Will See
+### What documents do I get?
 
-Cards for each generated document. The system creates two PDFs:
+The system creates two PDFs for you:
 
 **1. Bid Proposal**
-- A professional proposal document
-- Includes project details, client information, and item list with prices
-- Shows the grand total
-- Ready to send to your client
+- This is what you send to your client
+- It has: project details, client info, a list of all items with prices, and the grand total
+- It looks professional and is ready to send as-is
 
 **2. Shop Drawings**
-- Technical fabrication drawings
-- One drawing per glass item with exact dimensions
-- Numbered sequentially for easy reference
-- Used by the glass fabrication shop
+- This is for the glass fabrication shop
+- It has one drawing per glass item with exact dimensions
+- Each drawing is numbered so the shop can easily reference them
 
-### How to Download
+### How to download
 
 For each document you have two options:
-
 - **"Download"** -- Saves the PDF to your computer
-- **"Preview"** -- Opens the PDF in a new browser tab so you can review it before downloading
+- **"Preview"** -- Opens it in a new browser tab so you can look at it first
 
-To download everything at once, click **"Download All (ZIP)"** at the bottom. This creates a single ZIP file containing both PDFs.
+Want everything at once? Click **"Download All (ZIP)"** at the bottom. This gives you one ZIP file with both PDFs inside.
 
-### Need to Make Changes?
+### Need to make changes after generating?
 
-If you notice an issue after the documents are generated:
+No problem!
 
 1. Click the **"Regenerate"** button
-2. Go back to the Review or Pricing pages to make corrections
+2. Go back to the Review or Pricing pages to fix things
 3. Submit again and new documents will be created
 
-> **Tip:** Each regeneration creates a new version. Previous versions are not deleted, so you always have a record.
+**Good to know:** Every time you regenerate, a new version is created. Old versions are NOT deleted. You always have a complete history.
 
 ---
 
-## 10. Managing Pricing Rules (Admin)
+## 10. Managing Prices (Admin Only)
 
-This section is for administrators who manage the pricing rules used to calculate costs.
+This section is for administrators who manage the pricing rules.
 
-### Accessing Pricing Rules
+### Getting to the Pricebook
 
-1. Click **"Pricebook"** in the side menu under ADMIN
+1. Click **"Pricebook"** in the left menu under ADMIN
 2. You will see a list of **Pricebook Versions**
 
 ### What is a Pricebook Version?
 
-A pricebook version is a set of pricing rules that apply from a specific date. When you update prices, you create a new version. Old versions are kept for reference and auditing.
+Think of it as a "snapshot" of your prices at a point in time. When you update your prices, you create a new version. Old versions are kept so you can always look back and see what prices were used for previous projects.
 
-### Creating a New Pricebook Version
+### Creating a new version
 
 1. Click **"+ New Version"**
-2. Enter a note describing the change (for example: "2026 Q1 price increase")
+2. Type a note explaining the change (e.g., "2026 Q1 price increase")
 3. Click **"Create"**
 
-### Adding and Editing Pricing Rules
+### Working with pricing rules
 
 Click on any pricebook version to open the **Rules Editor**.
 
-Each rule has:
+Each rule has these fields:
 
-| Field | Description | Example |
-|-------|-------------|---------|
-| **Name** | A descriptive name for the rule | Standard Shower Glass |
+| Field | What it means | Example |
+|-------|--------------|---------|
+| **Name** | A descriptive name | Standard Shower Glass |
 | **Category** | What type of item it applies to | Shower, Mirror, Hardware, Labor, Other |
-| **Formula** | How the price is calculated (see below) | Unit Price |
+| **Formula** | How the price is calculated | Unit Price, Per Square Foot, or Fixed |
 | **Price** | The dollar amount | 85.00 |
-| **Active** | Whether this rule is currently in use | Yes / No |
+| **Active** | Is this rule being used? | Yes / No |
 
-### Formula Types Explained
+### Formula types explained simply
 
-| Formula | How It Works | When to Use |
-|---------|-------------|-------------|
-| **Unit Price** | Charges a flat amount per item | For standard items with fixed pricing |
-| **Per Square Foot** | Calculates based on the item's dimensions | For glass panels where price depends on size |
-| **Fixed** | Charges a flat amount regardless of size or quantity | For one-time fees like delivery or setup |
+| Formula | How it works | Use this when... |
+|---------|-------------|-----------------|
+| **Unit Price** | Charges a flat amount per item | The price is the same regardless of size |
+| **Per Square Foot** | Calculates based on the item's dimensions | Bigger items should cost more (like glass panels) |
+| **Fixed** | Charges a flat amount, period | It is a one-time fee (like delivery or setup) |
 
-### To Add a Rule
+### Adding, editing, and removing rules
 
-1. Click **"+ Add Rule"**
-2. Fill in the name, category, formula type, and price
-3. Click **"Save"**
-
-### To Edit a Rule
-
-1. Click on the **rule name** in the table
-2. Make your changes
-3. Click **"Save"**
-
-### To Deactivate a Rule
-
-Instead of deleting a rule, you can toggle it to **Inactive**. Inactive rules are ignored during pricing but kept for your records.
-
-### To Delete a Rule
-
-Click **"Delete"** next to the rule and confirm. This cannot be undone.
+- **Add a rule:** Click **"+ Add Rule"**, fill in the fields, click **"Save"**
+- **Edit a rule:** Click the rule name, change what you need, click **"Save"**
+- **Turn off a rule (without deleting):** Toggle it to **Inactive**. It will be ignored during pricing but kept for your records.
+- **Delete a rule:** Click **"Delete"** and confirm. **This cannot be undone.**
 
 ---
 
-## 11. Monitoring the System (Admin)
+## 11. Checking System Health (Admin Only)
 
-### Admin Overview
+### Quick overview (Admin Overview)
 
-Click **"Admin Overview"** in the side menu. You will see four summary cards:
+Click **"Admin Overview"** in the left menu. You will see four cards:
 
-- **Total Projects** -- How many projects exist
-- **Active Jobs** -- How many jobs are currently being processed
-- **Failed Jobs** -- How many jobs have encountered errors
-- **Disk Usage** -- How much storage space is being used
+| Card | What it tells you |
+|------|------------------|
+| **Total Projects** | How many projects exist in the system |
+| **Active Jobs** | How many jobs are being processed right now |
+| **Failed Jobs** | How many jobs had errors |
+| **Disk Usage** | How much storage space is being used |
 
-Below the cards, the **System Health** section shows whether the key components are running:
-- **Database** -- Should show a green dot with "Connected"
-- **Worker** -- Should show a green dot with "Active" and a recent timestamp
+Below those cards, the **System Health** section shows whether the key parts are working:
+- **Database** -- Should show a green dot and "Connected"
+- **Worker** -- Should show a green dot and "Active"
 - **Disk** -- Should show available storage space
 
-### System Health (Detailed)
+### Detailed health check
 
-Click **"System Health"** for a more detailed view that updates automatically every 10 seconds:
+Click **"System Health"** for a more detailed view (it refreshes every 10 seconds):
 
-- **Status** -- Overall system health (OK or Error)
-- **Database** -- Connection status
-- **Disk Usage** -- A visual bar showing used vs available space
-  - Green = Healthy (under 60% used)
-  - Yellow = Getting full (60-80% used)
-  - Red = Critical (over 80% used)
-- **Worker** -- Whether the background processor is running
-- **Memory** -- How much memory the application is using
+- **Status** -- Overall health: OK or Error
+- **Database** -- Is the database connected?
+- **Disk Usage** -- A bar showing used vs available space
+  - **Green** = Healthy (under 60% used)
+  - **Yellow** = Getting full (60-80%)
+  - **Red** = Critical (over 80%) -- contact your IT team!
+- **Worker** -- Is the background processor running?
+- **Memory** -- How much memory the app is using
 
-> **When to worry:** If you see a red indicator for Database or Worker, or if Disk Usage is above 80%, contact your IT team.
+**When should I worry?** If Database or Worker shows red, or if Disk Usage is above 80%. Contact your IT team.
 
 ### Audit Log
 
-Click **"Audit Log"** to see a history of everything that has happened in the system:
-
+Click **"Audit Log"** to see a complete history of everything that happened:
 - Every project and job created
-- Every time a job changes status
-- Every price override (with the reason provided)
-- Every time documents are generated or regenerated
+- Every status change
+- Every price override (with the reason)
+- Every time documents were generated
 
-You can filter by **Job ID** to see the history for a specific job.
-
-Click the **expand arrow** on any row to see the full details of what changed.
+You can filter by **Job ID** to see just one job's history. Click the **expand arrow** on any row to see full details.
 
 ---
 
-## 12. Quick Reference Card
+## 12. Cheat Sheet
 
-Here is the complete workflow at a glance:
+Here is the entire workflow on one page:
 
 ```
-Step 1  Create a new project and upload your PDF
-           Click "New Project" > Fill in details > Attach PDF > Click "Create Project & Upload"
+STEP 1  CREATE YOUR PROJECT
+        Click "New Project" > Fill in the name > Attach your PDF > Click "Create Project & Upload"
 
-Step 2  Wait for automatic processing
-           The system reads, classifies, and extracts information from your PDF
-           (Usually 30 seconds to 5 minutes)
+STEP 2  WAIT
+        The system reads and processes your PDF automatically.
+        Usually takes 30 seconds to 5 minutes. Just wait.
 
-Step 3  Review the extracted pages (optional)
-           Browse page thumbnails to see what was found
+STEP 3  BROWSE PAGES (optional)
+        Look at the page thumbnails to see what the system found.
 
-Step 4  Take any manual measurements (if needed)
-           Calibrate the scale > Measure missing dimensions > Assign to tasks
+STEP 4  TAKE MEASUREMENTS (if needed)
+        Calibrate the scale > Measure missing dimensions > Assign to tasks
+        Remember: you can drag points to adjust, press Delete to clear.
 
-Step 5  Review and correct extracted items
-           Check dimensions, fix any warnings, complete all measurement tasks
+STEP 5  REVIEW ITEMS
+        Check all dimensions. Fix any warnings. Complete all measurement tasks.
 
-Step 6  Submit for pricing
-           Click "Submit for Pricing" (all measurement tasks must be complete)
+STEP 6  SUBMIT FOR PRICING
+        Click "Submit for Pricing" (all measurement tasks must be done first).
 
-Step 7  Review and adjust prices
-           Check the pricing table, override any prices if needed
+STEP 7  CHECK PRICES
+        Review the pricing table. Override any prices that need adjusting.
 
-Step 8  Generate documents
-           Click "Generate PDFs" to create your Bid Proposal and Shop Drawings
+STEP 8  GENERATE DOCUMENTS
+        Click "Generate PDFs" to create your Bid Proposal and Shop Drawings.
 
-Step 9  Download your documents
-           Download individual PDFs or use "Download All (ZIP)"
+STEP 9  DOWNLOAD
+        Download individual PDFs or click "Download All (ZIP)".
+        Done! Send the bid proposal to your client.
 ```
 
 ---
 
-## 13. Frequently Asked Questions
+## 13. Common Questions
 
 ### How long does processing take?
 
-It depends on the size of your PDF. A typical set of blueprints (20-50 pages) takes 1-3 minutes. Very large files (100+ pages) may take up to 5 minutes.
+A typical blueprint (20-50 pages) takes 1-3 minutes. A very large file (100+ pages) may take up to 5 minutes.
 
-### Can I process multiple PDFs at the same time?
+### Can I work on more than one PDF at a time?
 
-Yes. Each PDF is a separate job. You can upload another PDF while a previous one is still processing.
+Yes! Each PDF is a separate project. You can upload a new one while a previous one is still processing.
 
-### What PDF file types are supported?
+### What types of PDFs work?
 
-Standard PDF files from architectural software (AutoCAD, Revit, Bluebeam, etc.). The system works best with vector-based PDFs. Scanned documents may have lower accuracy.
+Standard PDFs from architectural software like AutoCAD, Revit, or Bluebeam. The system works best with "vector" PDFs (created directly from the design software). Scanned documents (photos of paper drawings) will have lower accuracy.
 
-### What happens if the system cannot read a dimension?
+### What if the system cannot read a dimension?
 
-The item will be flagged as "Incomplete" and a measurement task will be created. You will need to manually measure the dimension using the Measurement Tool (see Section 6).
+The item will be flagged as "Incomplete" and a measurement task will be created. You will need to use the Measurement Tool (see Section 6) to manually measure it.
 
-### Can I edit an item after submitting for pricing?
+### Can I fix something after submitting for pricing?
 
-Yes. You can go back to the Review page, make changes, and submit again. If documents have already been generated, you can click "Regenerate" to create updated versions.
+Yes. You can go back to the Review page, make your changes, and submit again. If documents were already generated, click "Regenerate" to create updated versions.
 
-### How do I change the price for a specific item?
+### How do I change a price for one specific item?
 
-On the Pricing Review page, click the "Override" button for that item. Enter the new price and a reason for the change. The total will recalculate automatically.
+On the Pricing page, click "Override" on that item. Enter the new price and a reason. The total recalculates automatically.
 
-### What are the two PDF documents that get generated?
+### What are the two PDF documents?
 
-1. **Bid Proposal** -- A formal price quote to send to your client, with a summary of all items and the total cost
-2. **Shop Drawings** -- Technical drawings for the glass fabrication shop, showing exact dimensions for each item
+1. **Bid Proposal** -- A formal price quote you send to your client. It has all items and the total cost.
+2. **Shop Drawings** -- Technical drawings for the glass fabrication shop, with exact dimensions for each item.
 
-### Can I download previous versions of my documents?
+### Can I see old versions of my documents?
 
-Yes. Each time you regenerate documents, a new version is created. All versions remain available on the Results page.
+Yes. Every time you regenerate, a new version is created. All versions are kept on the Results page.
 
-### What does "TBV" mean in the review table?
+### What does "TBV" mean?
 
-**TBV** stands for **"To Be Verified"**. It means a dimension is missing and needs to be measured or entered manually.
+**TBV = "To Be Verified."** It means a dimension is missing and needs to be measured or typed in manually.
 
 ### What if a job shows "Failed"?
 
-Go to the Job Status page. You will see a red card with error details. Common causes include:
-- A corrupted or password-protected PDF
-- An extremely large page that exceeds memory limits
-- A temporary system issue (try clicking "Retry")
+Go to the Job Status page. You will see a red card with error details. Common causes:
+- The PDF is corrupted or password-protected
+- A page is extremely large and exceeded memory limits
+- A temporary glitch (try clicking "Retry")
 
-If retrying does not work, contact your administrator.
+If retrying does not fix it, contact your administrator.
 
-### How do I reset everything and start fresh?
+### How do I start completely over?
 
-Each project and job is independent. Simply create a new project and upload your PDF again. Old projects can remain in the system for your records.
+Each project is independent. Just create a new project and upload your PDF again. Old projects stay in the system for your records.
 
-### Who can see my projects?
+### Can other people see my projects?
 
-Currently, all users share the same workspace. All projects are visible to everyone who has access to the system.
+Yes. Everyone who has access to the system can see all projects. There is no private workspace at this time.
+
+### I accidentally deleted my calibration. Do I need to re-upload?
+
+No! Just calibrate again. Click the Calibrate tool, click two points on a known dimension, and enter the measurement. It takes 10 seconds.
+
+### The measurement line is crooked. How do I fix it?
+
+You do NOT need to start over. Just hover over one of the blue dots at the end of the line -- your cursor will change to a hand. Click and drag the dot to the correct position. The measurement updates in real time as you drag.
+
+### Can I move the entire measurement line?
+
+Yes! Hover over the line itself (not the endpoints). Your cursor will change to a move arrow. Click and drag to move the whole line (both points move together).
