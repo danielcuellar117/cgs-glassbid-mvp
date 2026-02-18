@@ -184,15 +184,32 @@ export function MeasurementTool() {
     return projectJobs.find((j) => j.id !== jobId && j.status === "NEEDS_REVIEW") ?? null;
   }, [projectJobs, jobId, allPendingTasks]);
 
+  // ── Reset per-page state when navigating between pages ──
+  useEffect(() => {
+    setRenderId(null);
+    setJustAssigned(null);
+    setSelectedTask(null);
+    setShowCalibDialog(false);
+    calibPointsRef.current = [];
+    setCalibPointCount(0);
+    calibrationRef.current = null;
+    setCalibration(null);
+    measurePointsRef.current = [];
+    setMeasurePointCount(0);
+    measuredDistRef.current = null;
+    setMeasuredDistDisplay(null);
+    imgRef.current = null;
+    setTool("pan");
+  }, [jobId, pageNum]);
+
   // ── Render request ──
   useEffect(() => {
     if (!jobId || renderId) return;
-    setJustAssigned(null);
     createRender.mutate(
       { jobId, pageNum, kind: "MEASURE", dpi: 200 },
       { onSuccess: (data) => setRenderId(data.id) },
     );
-  }, [jobId, pageNum]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [jobId, pageNum, renderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const imageUrl = useMemo(() => {
     const d = renderReq.data;
